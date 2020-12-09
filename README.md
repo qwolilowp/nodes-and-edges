@@ -1,7 +1,7 @@
 # N O D E S A N D E D G E S
 
 ## WHAT IS IT
-It is a network sequencer, a AI supported sequencer, a aleatoric-nonaleatoric sequencer, a drawing music notation or experimental notation, a midi sequencer and a audio-data sequnencer. 
+It is a network sequencer, a AI supported sequencer, a aleatoric-nonaleatoric sequencer, a drawing music notation or experimental notation, a midi sequencer and a audio-data sequencer. 
 
 The sequencing is done by arranging nodes (audio/midi/notation events) with edges between each other. The edges just pass the activity around and the nodes are active or not and release activity.
 
@@ -23,27 +23,31 @@ We are not interested in formalizing music. We are up to network sequencing and 
 
 ### MIDI NODE
 
-## USAGE
+# USAGE
 
-# STARTUP
+Visist https://nodesandedges.de/ for a quick test. If you like to install this software, just download the *nadne* Folder and open the *index.html* with your browser or push the *nadne* folder to your HTTP-Server.
 
-# MAINMENU
+## STARTUP
 
-# NODEMENUS
+## MAINMENU
 
-## Menu: MUSIC NOTATION NODE
+## NODEMENUS
+
+### Menu: MUSIC NOTATION NODE
 
 
 
-## Menu: SPLIT NODE
+### Menu: SPLIT NODE
 
-## Menu: SUM NODE
+### Menu: SUM NODE
 
-## Menu: AUDIO FILE NODE
+### Menu: AUDIO FILE NODE
 
-## Menu: AUDIO RECORDER NODE
+### Menu: AUDIO RECORDER NODE
 
-## Menu: MIDI NODE
+### Menu: MIDI NODE
+
+# REQUIREMENTS
 
 # LOOK AT
 
