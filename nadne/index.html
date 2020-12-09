@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+		<meta charset="utf-8" />
+        	<link rel="shortcut icon" href="favicon.ico" />
+		    <link rel="apple-touch-icon" href="favicon.ico" />
+		    
+        	
+		<title>N O D E S A N D E D G E S</title>
+        <script type="text/javascript" src="nande.js"></script>
+        <style>
+        html{
+            font-family: Arial;
+            
+        }
+        body {
+            overflow: auto;
+        }
+        .mainmen{
+            display: block;
+            position: absolute;
+            z-index: 5;
+        }
+        .mainmenent{
+            border-radius: 2px;
+            border: 1px solid gray;
+            cursor: pointer;
+            background: white;
+            margin:2px;
+            padding:1px;
+        }
+        .mainmenent:hover {
+            color: red;
+        }
+        .nodemenent{
+            border-radius: 2px;
+            border: 1px solid blue;
+            cursor: pointer;
+            margin: 2px;
+            
+            background:white;
+        }
+        .nodemenent:hover {
+            color: red;
+        }
+        .nodemen{
+            padding:2px;
+            -moz-user-select: none; 
+            -khtml-user-select: none; 
+            -webkit-user-select: none; 
+            /* Introduced in IE 10. See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/ */ 
+            -ms-user-select: none; user-select: none; 
+        }
+        .drwnode{
+            border: 1px solid black;
+            position: absolute;
+            transform-origin: top left;
+            transform: scale(0.1);
+            background: white;
+            opacity:0.3;
+            z-index:2;
+        }
+        .midinode{
+            border: 1px solid black;
+            position: absolute;
+            background: white;
+            opacity:0.3;
+            z-index:3;
+        }
+
+        #nodesdrawbackground{
+            background:lightgray;
+        }
+        .colorfield{
+            margin:1px;
+            cursor: pointer;
+        }
+        
+        </style>
+		
+	</head>
+	<body>
+        
+        <div id="nodesdrawbackground">
+		</div>
+
+        <canvas id="edges">
+		</canvas>
+		
+        <div id="nodesinteract">
+		</div>
+
+        
+        <script>
+            nande_ask_size( );
+            inint_workbench( );
+        </script>
+	</body>
+</html>
