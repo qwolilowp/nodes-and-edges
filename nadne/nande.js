@@ -48,6 +48,8 @@ let CADDY = 0;
 let connX = null;
 let olx = 0;
 let oly = 0;
+let touchx = null;
+let touchy = null;
 let backgroundof = "white";
 let linecolor = "black";
 let inoffset = 20;
@@ -237,8 +239,11 @@ CONN AND FREEDBACK DRAW
 *******************************************************************************/
 function startconn( e ){
     fromindex = parseInt(e.target.name);
+    touchx = olx;
+    touchy = oly;
     olx = e.pageX;
     oly = e.pageY;
+    
     console.log("from", fromindex); 
     //start drawing
     dodrawconn = true;
@@ -275,6 +280,12 @@ function drawAconn( e ){
     if( dodrawconn ){
         let x = Math.round(e.pageX);
         let y = Math.round(e.pageY);
+        if( e.type === "touchmove" ||
+            e.type === "touchstart"){
+          x = Math.round(e.touches[0].clientX);
+          y = Math.round(e.touches[0].clientY);
+        } 
+        
         connX.strokeStyle = linecolor;
         connX.lineWidth = 2;
         connX.beginPath();
@@ -377,11 +388,40 @@ function drawallconn( ){
 
 /*******************************************************************************
 
-PICT DRAW
+PICT DRAW AND POINTER INTERACTION
 
 *******************************************************************************/
+//PREVENT REGULAR BEHAVIOR
+//Safari and IE related
+window.addEventListener( 'gesturestart', function( e ){
+    e.preventDefault();
+}, false);
 
-function pointerdownEventFkt( e ){
+window.addEventListener( 'gestureend', function( e ){
+    e.preventDefault();
+    if (e.scale < 1.0) {
+        console.log(e.scale);
+    } else if (e.scale > 1.0) {
+        // User moved fingers further apart
+        console.log(e.scale);
+    }
+}, false);
+
+//context menu on long press
+window.addEventListener( 'long-press', function( e ){
+    e.preventDefault();
+}, false);
+
+window.oncontextmenu = function( e ){
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+};
+
+function onpointerdownEventFkt( e ){
+    e.preventDefault();
+    e.stopPropagation(); 
+    e.stopImmediatePropagation();
     drawnice = true;
     let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
     let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
@@ -389,6 +429,9 @@ function pointerdownEventFkt( e ){
 }
 
 function pointermoveEvfkt( e ){
+    e.preventDefault();
+    e.stopPropagation(); 
+    e.stopImmediatePropagation();
     if( drawnice ){
         let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
         let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
@@ -408,12 +451,15 @@ function pointermoveEvfkt( e ){
     }
 }
 
-function pointerupEventFkt( e ){
+function onpointerupEventFkt( e ){
+    e.preventDefault();
+    e.stopPropagation(); 
+    e.stopImmediatePropagation();
     drawnice = false;
     let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
     let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
     currtraj.push([x,y]);
-    console.log(TRAJ, e.target.name);
+    //console.log(TRAJ, e.target.name);
     TRAJ[parseInt(e.target.name)].push( currtraj );
     currtraj = [];
 }
@@ -1009,6 +1055,15 @@ function setDur( elem ){
     }
 }
 
+function setCount( elem ){
+    let index = parseInt( elem.name );
+    let temdur = prompt("New Duration in msec: ");
+    if( temdur && temdur !== "" ){
+        DARWINGS[index][2] = parseInt(temdur);
+        elem.parentNode.children[elem.parentNode.children.length-3].innerHTML = " "+temdur;
+    }
+}
+
 function setMO( index ){
     let temmo = prompt("Give Modus of node (0: ..., 1:..., 2:... ): ");
     if( temmo && temmo !== "" ){
@@ -1299,23 +1354,43 @@ function munode( e ){
     }
 }
 
+function settouchpos( event ){
+    if( event.type === "touchmove" ) {
+      touchx = event.touches[0].clientX;
+      touchy = event.touches[0].clientY;
+    } else {
+      touchx = event.clientX;
+      touchy = event.clientY;
+    }
+
+}
+
 function movearound( event ){
     let onelem = event.target || event.srcElement;
     //onelem.style.position = "absolute";
-    onelem.parentNode.style.left = event.pageX.toString()+"px";
-    onelem.parentNode.style.top = event.pageY.toString()+"px";
+    let xx = null;
+    let yy = null;
+    if( event.pageX !== undefined ){
+        xx = event.pageX;
+        yy = event.pageY;
+    } else {
+        xx = touchx;
+        yy = touchy;
+    }
+    onelem.parentNode.style.left = xx.toString()+"px";
+    onelem.parentNode.style.top = yy.toString()+"px";
     onelem.parentNode.style.background = "#"+  Math.random().toString(16).substring(2, 8);
     if( onelem.parentNode.name === "nono" ){
-        DARWINGS[parseInt(onelem.name)].style.left = event.pageX.toString()+"px";
-        DARWINGS[parseInt(onelem.name)].style.top = (event.pageY+15).toString()+"px";
+        DARWINGS[parseInt(onelem.name)].style.left = xx.toString()+"px";
+        DARWINGS[parseInt(onelem.name)].style.top = (yy+15).toString()+"px";
     } else if( onelem.parentNode.name === "nononono" ){
-        DARWINGS[parseInt(onelem.name)][2].style.left = event.pageX.toString()+"px";
-        DARWINGS[parseInt(onelem.name)][2].style.top = (event.pageY+15).toString()+"px";
-        DARWINGS[parseInt(onelem.name)][0] = event.pageX;
-        DARWINGS[parseInt(onelem.name)][1] = event.pageY;
+        DARWINGS[parseInt(onelem.name)][2].style.left = xx.toString()+"px";
+        DARWINGS[parseInt(onelem.name)][2].style.top = (yy+15).toString()+"px";
+        DARWINGS[parseInt(onelem.name)][0] = xx;
+        DARWINGS[parseInt(onelem.name)][1] = yy;
     } else {
-        DARWINGS[parseInt(onelem.name)][0] = event.pageX;
-        DARWINGS[parseInt(onelem.name)][1] = event.pageY;
+        DARWINGS[parseInt(onelem.name)][0] = xx;
+        DARWINGS[parseInt(onelem.name)][1] = yy;
     }
     drawallconn();
 }
@@ -1481,6 +1556,9 @@ function arithnode( x, y, typedenode ){
     m7.name = DARWINGS.length-1;
     m7.draggable = true;
     m7.ondragend = function(){ movearound( event ); };
+    m7.ontouchstart = function(){ settouchpos( event ); };
+    m7.ontouchmove = function(){ settouchpos( event ); };
+    m7.ontouchend = function(){ movearound( event ); };
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -1488,15 +1566,15 @@ function arithnode( x, y, typedenode ){
     m1.name = DARWINGS.length-1;
     m1.innerHTML = "CO";
     m1.onclick = function(){};
-    m1.onmousedown = function(){ startconn( event ); };
-    m1.onmouseup = function(){ endconn( event ); };
+    m1.onpointerdown = function(){ startconn( event ); };
+    m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
     let m2 = document.createElement( "span" );
     m2.className = "nodemenent";
     m2.innerHTML = "XC";
     m2.title = "Clear all outgoing connections!";
     m2.name = ACTIVEONES.length-1;
-    m2.onmouseup = function(){ xconn( event ); };
+    m2.onpointerup = function(){ xconn( event ); };
     d.appendChild( m2 );
     let m8 = document.createElement( "span" );
     m8.className = "nodemenent";
@@ -1505,9 +1583,17 @@ function arithnode( x, y, typedenode ){
     m8.onclick = function(){ munode( event ); };
     d.appendChild( m8 );
     if( typedenode === "sum" ){
+        let m11 = document.createElement( "span" );
+        m11.className = "nodemenent";
+        m11.innerHTML = "SC";
+        m11.title = "Set Duration of node in ms.";
+        m11.name = ACTIVEONES.length-1;
+        m11.onclick = function(){ setCount( this ); };
+        d.appendChild( m11 );
         let m9 = document.createElement( "span" );
         m9.innerHTML = " "+DARWINGS[DARWINGS.length-1][2];
         d.appendChild( m9 );
+        
     } else {
         let m11 = document.createElement( "span" );
         m11.className = "nodemenent";
@@ -1546,12 +1632,13 @@ function insertSumNode( e ){
 function insertSplitNode(e ){
     console.log("split node");
     TRAJ.push([]);
+    CADDX = e.pageX;
+    CADDY = e.pageY;
     DARWINGS.push( [CADDX, CADDY] );
     ACTIVEONES.push( -2 );
     DURATIONS.push( 0 );
     MODUS.push("split");
-    CADDX = e.pageX;
-    CADDY = e.pageY;
+    
     arithnode(CADDX, CADDY, "split"); 
     e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
 }
@@ -1573,6 +1660,9 @@ function insertTHEnodeStuff( CADDX, CADDY, label ){
     m7.name = DARWINGS.length-1;
     m7.draggable = true;
     m7.ondragend = function(){ movearound( event ); };
+    m7.ontouchstart = function(){ settouchpos( event ); };
+    m7.ontouchmove = function(){ settouchpos( event ); };
+    m7.ontouchend = function(){ movearound( event ); };
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -1580,8 +1670,8 @@ function insertTHEnodeStuff( CADDX, CADDY, label ){
     m1.name = DARWINGS.length-1;
     m1.innerHTML = "CO";
     m1.onclick = function(){};
-    m1.onmousedown = function(){ startconn( event ); };
-    m1.onmouseup = function(){ endconn( event ); };
+    m1.onpointerdown = function(){ startconn( event ); };
+    m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
 
     let m2 = document.createElement( "span" );
@@ -1589,7 +1679,7 @@ function insertTHEnodeStuff( CADDX, CADDY, label ){
     m2.innerHTML = "XC";
     m2.title = "Clear all outgoing connections!";
     m2.name = ACTIVEONES.length-1;
-    m2.onmouseup = function(){ xconn( event ); };
+    m2.onpointerup = function(){ xconn( event ); };
     d.appendChild( m2 );
     let m6 = document.createElement( "span" );
     m6.className = "nodemenent";
@@ -1696,6 +1786,9 @@ function buildmidiMen(){
     m7.name = ACTIVEONES.length-1;
     m7.draggable = true;
     m7.ondragend = function(){ movearound( event ); };
+    m7.ontouchstart = function(){ settouchpos( event ); };
+    m7.ontouchmove = function(){ settouchpos( event ); };
+    m7.ontouchend = function(){ movearound( event ); };
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -1704,15 +1797,15 @@ function buildmidiMen(){
     m1.innerHTML = "CO";
     m1.title = "Connections!";
     m1.onclick = function(){};
-    m1.onmousedown = function(){ startconn( event ); };
-    m1.onmouseup = function(){ endconn( event ); };
+    m1.onpointerdown = function(){ startconn( event ); };
+    m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
     let m2 = document.createElement( "span" );
     m2.className = "nodemenent";
     m2.innerHTML = "XC";
     m2.title = "Clear all outgoing connections!";
     m2.name = ACTIVEONES.length-1;
-    m2.onmouseup = function(){ xconn( event ); };
+    m2.onpointerup = function(){ xconn( event ); };
     d.appendChild( m2 );
     let m5 = document.createElement( "span" );
     m5.className = "nodemenent";
@@ -1869,9 +1962,9 @@ function insertAnodedraw( args ){
     lock = true;
     let drawarea = document.createElement( "canvas" );
     drawarea.className = "drwnode";
-    drawarea.addEventListener('pointerup',   function( e ){   pointerupEventFkt(e);    }, false);
+    drawarea.addEventListener('pointerup',   function( e ){   onpointerupEventFkt(e);    }, false);
     drawarea.addEventListener('pointermove', function( e ){   pointermoveEvfkt(e);     }, false);
-    drawarea.addEventListener('pointerdown', function( e ){   pointerdownEventFkt(e);  }, false);
+    drawarea.addEventListener('pointerdown', function( e ){   onpointerdownEventFkt(e);  }, false);
     drawarea.type = "#"+  Math.random().toString(16).substring(2, 8);
     drawarea.name = ACTIVEONES.length;
     if( args === undefined ){
@@ -1940,6 +2033,9 @@ function insertAnodemenu( ){
     m7.name = ACTIVEONES.length-1;
     m7.draggable = true;
     m7.ondragend = function(){ movearound( event ); };
+    m7.ontouchstart = function(){ settouchpos( event ); };
+    m7.ontouchmove = function(){ settouchpos( event ); };
+    m7.ontouchend = function(){ movearound( event ); };
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -1948,15 +2044,15 @@ function insertAnodemenu( ){
     m1.innerHTML = "CO";
     m1.title = "Connections!";
     m1.onclick = function(){};
-    m1.onmousedown = function(){ startconn( event ); };
-    m1.onmouseup = function(){ endconn( event ); };
+    m1.onpointerdown = function(){ startconn( event ); };
+    m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
     let m2 = document.createElement( "span" );
     m2.className = "nodemenent";
     m2.innerHTML = "XC";
     m2.title = "Clear all outgoing connections!";
     m2.name = ACTIVEONES.length-1;
-    m2.onmouseup = function(){ xconn( event ); };
+    m2.onpointerup = function(){ xconn( event ); };
     d.appendChild( m2 );
     let m3 = document.createElement( "span" );
     m3.className = "nodemenent";
