@@ -1,7 +1,7 @@
 # N O D E S A N D E D G E S
 
 ## WHAT IS IT
-It is a network sequencer, a AI supported sequencer, a aleatoric-nonaleatoric sequencer, a drawing music notation or experimental notation, a midi sequencer and a audio-data sequencer. 
+It is a network sequencer, a AI supported sequencer, a aleatoric-nonaleatoric sequencer, a drawing music notation or experimental notation, a midi sequencer and a audio-data sequencer.
 
 The sequencing is done by arranging nodes (audio/midi/notation events) with edges between each other. The edges just pass the activity around and the nodes are active or not and release activity.
 
@@ -53,4 +53,9 @@ Visist https://nodesandedges.de/ for a quick test. If you like to install this s
 
 ![](DokuPic/first.png?raw=true)
 ![](DokuPic/second.png?raw=true)
+
+# TESTED ON
+
+Version 85.0.4183.102 (Offizieller Build) (64-Bit Linux)
+
 
