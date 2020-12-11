@@ -202,8 +202,19 @@ A quick video view of nodesandedges: https://nodesandedges.de/bellsairplainsandd
 
 # TESTED ON
 
-Chrome Browser Version 85.0.4183.102 (Offizieller Build) (64-Bit Linux)
+Chrome Version 85.0.4183.102 (Offizieller Build) (64-Bit Linux)
 
-Firefox Browser Version 83.0 (64-Bit Linux)
+Firefox Version 83.0 (64-Bit Linux)
+
+Chromium Version 87.0.4280.66 (Offizieller Build) (64-Bit Linux)
+
+Chrome Version 87.0.4280.88 (Offizieller Build) (64-Bit Windows)
+
+Opera Version 72.0.3815.400 (64-Bit Windows)
+
+Firefox Version 83.0 (32-Bit Windows)
+
+Opera Version 68.0.3618.173 (64-Bit Linux)
+
 
 
