@@ -265,7 +265,7 @@ function endconn( e ){
         console.log("how many", count);
         ACTIVEONES[ toindex ] = count;
         DARWINGS[ toindex ][2] = count;
-        e.target.parentNode.children[4].innerHTML = count;
+        e.target.parentNode.children[5].innerHTML = count;
     } 
     
     dodrawconn = false;
@@ -274,6 +274,7 @@ function endconn( e ){
 
 function xconn( e ){
     INOUT[ parseInt(e.target.name) ] = [];
+    drawallconn();
 }
 
 function drawAconn( e ){
@@ -391,6 +392,7 @@ function drawallconn( ){
 PICT DRAW AND POINTER INTERACTION
 
 *******************************************************************************/
+
 //PREVENT REGULAR BEHAVIOR
 //Safari and IE related
 window.addEventListener( 'gesturestart', function( e ){
@@ -418,50 +420,81 @@ window.oncontextmenu = function( e ){
         return false;
 };
 
+let olddagevent = null;
 function onpointerdownEventFkt( e ){
-    e.preventDefault();
-    e.stopPropagation(); 
-    e.stopImmediatePropagation();
-    drawnice = true;
-    let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
-    let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
-    currtraj.push([x,y]);
+    //console.log(e.target);
+    //disable default behavior but not for select elements
+    if( e.target.nodeName !== "SELECT" ){
+        e.preventDefault();
+        e.stopPropagation(); 
+        e.stopImmediatePropagation();
+    }
+    if( e.target.nodeName === "CANVAS" ){
+        drawnice = true;
+        let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
+        let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
+        currtraj.push([x,y]);
+    } else if( e.target.draggable ){
+        //console.log("dragstart", e);
+        olddagevent = e;
+    }
 }
 
 function pointermoveEvfkt( e ){
     e.preventDefault();
     e.stopPropagation(); 
     e.stopImmediatePropagation();
-    if( drawnice ){
-        let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
-        let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
-        let currx = e.target.getContext("2d");
-        let ox = currtraj[currtraj.length-1][0];
-        let oy = currtraj[currtraj.length-1][1];
-        currx.strokeStyle = STROKESTY;
-        currx.lineWidth = STROWIDTH;
-        currx.lineCap = "round";
-        currx.beginPath();
-        
-        currx.moveTo( x, y ); 
-        currx.lineTo( ox, oy );
-        currx.stroke();
-        currx.closePath();
-        currtraj.push([x,y]);
+    //draw on canvas of node
+    if( e.target.nodeName === "CANVAS" ){
+        if( drawnice ){
+            let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
+            let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
+            let currx = e.target.getContext("2d");
+            let ox = currtraj[currtraj.length-1][0];
+            let oy = currtraj[currtraj.length-1][1];
+            currx.strokeStyle = STROKESTY;
+            currx.lineWidth = STROWIDTH;
+            currx.lineCap = "round";
+            currx.beginPath();
+            
+            currx.moveTo( x, y ); 
+            currx.lineTo( ox, oy );
+            currx.stroke();
+            currx.closePath();
+            currtraj.push([x,y]);
+        }
     }
+
+    //darw conn while connecting nodes
+    drawAconn( e );
 }
 
 function onpointerupEventFkt( e ){
     e.preventDefault();
     e.stopPropagation(); 
     e.stopImmediatePropagation();
-    drawnice = false;
-    let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
-    let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
-    currtraj.push([x,y]);
-    //console.log(TRAJ, e.target.name);
-    TRAJ[parseInt(e.target.name)].push( currtraj );
-    currtraj = [];
+    //drawing  canvas of node
+    if( e.target.nodeName === "CANVAS" ){
+        drawnice = false;
+        let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
+        let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
+        currtraj.push([x,y]);
+        //console.log(TRAJ, e.target.name);
+        TRAJ[parseInt(e.target.name)].push( currtraj );
+        currtraj = [];
+    }  
+    
+    //dragging around
+    if( olddagevent !== null ){
+        //console.log("dragend", olddagevent);
+        movearound( e, olddagevent );
+        olddagevent = null;
+    }
+
+    //draw connection while connecting nodes
+    if( dodrawconn ){ 
+        dodrawconn = false; 
+    }; 
 }
 
 
@@ -1362,21 +1395,47 @@ function settouchpos( event ){
       touchx = event.clientX;
       touchy = event.clientY;
     }
-
+    console.log(touchx, touchy);
 }
 
-function movearound( event ){
-    let onelem = event.target || event.srcElement;
+function screenpostopagepos(x,y) { // crossbrowser version
+    
+    let body = document.body;
+    let docEl = document.documentElement;
+
+    let scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+    let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+    
+    let clientTop = docEl.screenY || 0;
+    let clientLeft = docEl.screenX || 0;
+
+    console.log("y", y, scrollTop, clientTop);
+    console.log("x", x, scrollLeft, clientLeft);
+    var ny  = (y + scrollTop) - clientTop;
+    var nx = (x + scrollLeft) - clientLeft;
+
+    return [nx, ny];
+}
+
+function movearound( event, oldev ){
+    let onelem = oldev.target || oldev.srcElement;
+    //console.log( event.originalEvent.pageX );
     //onelem.style.position = "absolute";
-    let xx = null;
-    let yy = null;
-    if( event.pageX !== undefined ){
-        xx = event.pageX;
-        yy = event.pageY;
+    let xx = event.pageX;
+    let yy = event.pageY;
+    /*if( event.pageX !== undefined ){
+       
+            let xy = screenpostopagepos(event.screenX, event.screenY);
+            xx = xy[0];
+            yy = xy[1];
+        
     } else {
         xx = touchx;
         yy = touchy;
     }
+    console.log(xx,yy, event.pageX, event);
+    */
     onelem.parentNode.style.left = xx.toString()+"px";
     onelem.parentNode.style.top = yy.toString()+"px";
     onelem.parentNode.style.background = "#"+  Math.random().toString(16).substring(2, 8);
@@ -1393,6 +1452,7 @@ function movearound( event ){
         DARWINGS[parseInt(onelem.name)][1] = yy;
     }
     drawallconn();
+    
 }
 
 function setLwidth( ){
@@ -1555,10 +1615,10 @@ function arithnode( x, y, typedenode ){
     m7.innerHTML = "🖐️";
     m7.name = DARWINGS.length-1;
     m7.draggable = true;
-    m7.ondragend = function(){ movearound( event ); };
-    m7.ontouchstart = function(){ settouchpos( event ); };
-    m7.ontouchmove = function(){ settouchpos( event ); };
-    m7.ontouchend = function(){ movearound( event ); };
+    //m7.ondragend = function(){ movearound( event ); };
+    /*m7.onpointerdown = function(){ settouchpos( event ); };
+    m7.onpointermove = function(){ settouchpos( event ); };
+    m7.onpointerup = function(){ movearound( event ); };*/
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -1660,9 +1720,9 @@ function insertTHEnodeStuff( CADDX, CADDY, label ){
     m7.name = DARWINGS.length-1;
     m7.draggable = true;
     m7.ondragend = function(){ movearound( event ); };
-    m7.ontouchstart = function(){ settouchpos( event ); };
+    /*m7.ontouchstart = function(){ settouchpos( event ); };
     m7.ontouchmove = function(){ settouchpos( event ); };
-    m7.ontouchend = function(){ movearound( event ); };
+    m7.ontouchend = function(){ movearound( event ); };*/
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -1786,9 +1846,9 @@ function buildmidiMen(){
     m7.name = ACTIVEONES.length-1;
     m7.draggable = true;
     m7.ondragend = function(){ movearound( event ); };
-    m7.ontouchstart = function(){ settouchpos( event ); };
+    /*m7.ontouchstart = function(){ settouchpos( event ); };
     m7.ontouchmove = function(){ settouchpos( event ); };
-    m7.ontouchend = function(){ movearound( event ); };
+    m7.ontouchend = function(){ movearound( event ); };*/
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -1962,9 +2022,9 @@ function insertAnodedraw( args ){
     lock = true;
     let drawarea = document.createElement( "canvas" );
     drawarea.className = "drwnode";
-    drawarea.addEventListener('pointerup',   function( e ){   onpointerupEventFkt(e);    }, false);
-    drawarea.addEventListener('pointermove', function( e ){   pointermoveEvfkt(e);     }, false);
-    drawarea.addEventListener('pointerdown', function( e ){   onpointerdownEventFkt(e);  }, false);
+    //drawarea.addEventListener('pointerup',   function( e ){   onpointerupEventFkt(e);    }, false);
+    //drawarea.addEventListener('pointermove', function( e ){   pointermoveEvfkt(e);     }, false);
+    //drawarea.addEventListener('pointerdown', function( e ){   onpointerdownEventFkt(e);  }, false);
     drawarea.type = "#"+  Math.random().toString(16).substring(2, 8);
     drawarea.name = ACTIVEONES.length;
     if( args === undefined ){
@@ -2033,9 +2093,9 @@ function insertAnodemenu( ){
     m7.name = ACTIVEONES.length-1;
     m7.draggable = true;
     m7.ondragend = function(){ movearound( event ); };
-    m7.ontouchstart = function(){ settouchpos( event ); };
-    m7.ontouchmove = function(){ settouchpos( event ); };
-    m7.ontouchend = function(){ movearound( event ); };
+    /*m7.onpointerdown = function(){ settouchpos( event ); };
+    m7.onpointermove = function(){ settouchpos( event ); };
+    m7.onpointerup = function(){ movearound( event ); };*/
     d.appendChild( m7 );
 
     let m1 = document.createElement( "span" );
@@ -2251,6 +2311,10 @@ function inint_workbench( ){
     document.body.style.width = WIDTH.toString()+"px";
     document.body.style.height = HEIGHT.toString()+"px";
 
+    document.body.addEventListener('pointerup', function( e ){ onpointerupEventFkt(e); }, false);
+    document.body.addEventListener('pointermove', function( e ){ pointermoveEvfkt(e); }, false);
+    document.body.addEventListener('pointerdown', function( e ){ onpointerdownEventFkt(e); }, false);
+
     let m13 = document.createElement( "input" );
     m13.style.fontSize = "400%";
     m13.style.position = "absolute";
@@ -2282,9 +2346,7 @@ function inint_workbench( ){
     outoffset = Math.round(WIDTH/50);
     inoffset = Math.round(WIDTH/20);
     
-    //conn drawing
-    document.body.addEventListener('pointerup', function( e ){    if(dodrawconn){ dodrawconn = false; };    }, false);
-    document.body.addEventListener('pointermove', function( e ){   drawAconn( e );     }, false);
+    
 }
 
 function nande_ask_size( ){
