@@ -1105,7 +1105,7 @@ function setMO( index ){
 }
 
 function toggelseqJESNO( e ){
-    if(DO){
+    if( DO ){
         DO = false;
     } else {
         DO = true;
@@ -1217,7 +1217,11 @@ async function integupload( allarr ){
                 CADDY = allarr[5][r][1];
                 TRAJ.push( allarr[6][r] );
                 DARWINGS.push( allarr[5][r] );
-                ACTIVEONES.push( allarr[10][r] );
+                if(allarr[7][r] === "sum"){
+                    ACTIVEONES.push( allarr[10][r] );
+                } else {
+                    ACTIVEONES.push( -2 );
+                }
                 DURATIONS.push( allarr[8][r] );
                 MODUS.push( allarr[7][r] );
                 let thisindexis = r+indexoffset;
@@ -2228,7 +2232,7 @@ function showmainmenu( e ){
     d.appendChild( m16 );
 
     let m4 = document.createElement( "div" );
-    m4.innerHTML = "Stop Seq";
+    m4.innerHTML = "Toggel STOP/DO";
     m4.className = "mainmenent";
     m4.title = "Stop all action in the sequencing network.";
     m4.onclick = function(){ toggelseqJESNO( event ); };
