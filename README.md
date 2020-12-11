@@ -190,7 +190,7 @@ The third select is for the pitch. The last select sets the velocity.
 
 ## ACTION of activation
 
-If you hit a *DO* button on any node, than the node is activated. The active nodes are highlighted by a colored box beneath the node menu. all the outgoing edges are also highlighted. That means the nodes at the end of this edges will be active next. If you have simple connections between you nodes the activation will die if the last node that has no outgoing edge was active. If you have a cycle in you connections than activity will be passed around for ever. A node could just be active or not. If a activated node receives a second activation this activation is skipped. But it is possible to pass around activation at different points of the network at the same time.
+If you hit a *DO* button on any node, than the node is activated. The active nodes are highlighted by a colored box beneath the node menu. All the outgoing edges are also highlighted. That means the nodes at the end of these edges will be active next. If you have simple connections between you nodes, the activation will die if the last node, that has no outgoing edge, was active. If you have a cycle in you connections than activity will be passed around for ever. A node could just be active or inactive. If a activated node receives a second activation this activation is skipped. But it is possible to pass around activation at different points of the network at the same time.
 
 
 # LOOK AT
