@@ -67,6 +67,8 @@ The fist button in the menu does nothing. It is labeled *None*. The second butto
 
 After the creation of a notation node you get a node displayed and consisting of a menu and a draw section.
 
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
 The button *CO* - is the target for the start / end of connections between the nodes.
 
 The button *XC* - deletes all outgoing connections of the notation-node.
@@ -77,7 +79,7 @@ The button *ED* - opens up/hides the drawing area for manipulation.
 
 The button *MO* - sets the modus of the notation-node (unused at the moment).
 
-The button *DU* - opens a promt that ask for a new duration value. After a input the new duration is set.
+The button *DU* - opens a promt that ask for a new duration value (in millisecends). After a input the new duration is set. Duration is displayed after the node menu.
 
 The button *DO* - just activates the node.
 
@@ -86,20 +88,109 @@ The button *MU* - mutes i.e. disables the node. No activation is propagated. Cou
 
 ### Menu: SPLIT NODE
 
+![](DokuPic/006_splitnode.png?raw=true)
+
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
+The button *CO* - is the target for the start / end of connections between the nodes.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
+
+The button *DU* - opens a promt that ask for a new duration value (in millisecends). After a input the new duration is set. Duration is displayed after the node menu.
+
 ### Menu: SUM NODE
+
+
+![](DokuPic/007_sumnode.png?raw=true)
+
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
+The button *CO* - is the target for the start / end of connections between the nodes.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
+
+The button *DU* - opens a promt that ask for a new duration value (in millisecends). After a input the new duration is set. Duration is displayed after the node menu.
+
 
 ### Menu: AUDIO FILE NODE
 
+After you selected the audio file from the file selection popup you get the audio-file-node. The filename of the audio file is displayed after the node menu.
+
+![](DokuPic/008_audiofilenode.png?raw=true)
+
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
+The button *CO* - is the target for the start / end of connections between the nodes.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *DO* - just activates the node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
+
+
 ### Menu: AUDIO RECORDER NODE
+
+Immediately after clicking the *Add AudioRecNode* button the recording will start. Sometimes your browser will ask if the webpage is allowed to access your microphone. After you did your recording and hit *Stop REC!* the node is added to the workbench. The name you give to the recording is displayed after the node menu. The duration is shown in brackets after the name.
+
+![](DokuPic/009_audiorecnode.png?raw=true)
+
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
+The button *CO* - is the target for the start / end of connections between the nodes.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *DO* - just activates the node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
+
 
 ### Menu: MIDI NODE
 
-# REQUIREMENTS
+The midi-node has a node and a midi menu.
 
+
+![](DokuPic/010_midinode.png?raw=true)
+
+Node menu:
+
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
+The button *CO* - is the target for the start / end of connections between the nodes.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *DU* - opens a promt that ask for a new duration value (in millisecends). After a input the new duration is set. Duration is displayed after the file name.
+
+The button *DO* - just activates the node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
+
+Midi menu:
+
+The first select is a choice between the midi massage types: note (note), aftertouch (adtert) and pitchbend (pibend).
+
+The next two selects encode the midi channel in use:
+|                | 0           | 1            | 2            |
+| :------------- | :----------:| :----------: | -----------: |
+|  1             | Chn1        | Chn2         | Chn3         |
+|  2             | Chn4        | Chn5         | Chn6         |
+|  3             | Chn7        | Chn8         | Chn9         |
+|  4             | Chn10       | Chn11        | Chn12        |
+|  5             | Chn13       | Chn14        | Chn15        |
+|  6             | Chn16       |              |              |
+
+
+The third select is for the pitch. The last select sets the velocity.
 # LOOK AT
 
 ![](DokuPic/first.png?raw=true)
-![](DokuPic/second.png?raw=true)
+![](DokuPic/third.png?raw=true)
 
 # TESTED ON
 
