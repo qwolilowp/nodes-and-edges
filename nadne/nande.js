@@ -195,6 +195,17 @@ function readFROM( name, objstname, theindex, dothis, withdata ){
                     HELPER FKT
 
 *******************************************************************************/
+function touchready( ){
+    if( "ontouchstart" in window ){
+        return true;
+    }
+    if( window.DocumentTouch && 
+        document instanceof DocumentTouch ){
+        return true;
+    }
+
+    return window.matchMedia( "(pointer: coarse)" ).matches;
+}
 
 function dodownit( contentof, nameoffile, type ){
     let af = new Blob( [ contentof ], {type: type} );
@@ -250,7 +261,9 @@ function startconn( e ){
 }
 
 function endconn( e ){
-    toindex = parseInt(e.target.name);
+    //console.log(e.pageX, e.pageY);
+    let thereachedelem = document.elementFromPoint( e.pageX, e.pageY )
+    toindex = parseInt(thereachedelem.name);
     console.log("to", toindex);
     if( INOUT[ fromindex ].indexOf( toindex ) === -1 ){
         INOUT[ fromindex ].push( toindex );
@@ -422,7 +435,7 @@ window.oncontextmenu = function( e ){
 
 let olddagevent = null;
 function onpointerdownEventFkt( e ){
-    //console.log(e.target);
+    //console.log(e.target, e.target.name, e);
     //disable default behavior but not for select elements
     if( e.target.nodeName !== "SELECT" ){
         e.preventDefault();
@@ -438,12 +451,17 @@ function onpointerdownEventFkt( e ){
         //console.log("dragstart", e);
         olddagevent = e;
     }
+    
+    if( e.target.innerHTML === "CO" ){
+        startconn( e );
+    }
 }
 
 function pointermoveEvfkt( e ){
     e.preventDefault();
     e.stopPropagation(); 
     e.stopImmediatePropagation();
+    
     //draw on canvas of node
     if( e.target.nodeName === "CANVAS" ){
         if( drawnice ){
@@ -473,6 +491,8 @@ function onpointerupEventFkt( e ){
     e.preventDefault();
     e.stopPropagation(); 
     e.stopImmediatePropagation();
+    //console.log(e.target, e.target.name, e);
+
     //drawing  canvas of node
     if( e.target.nodeName === "CANVAS" ){
         drawnice = false;
@@ -490,7 +510,9 @@ function onpointerupEventFkt( e ){
         movearound( e, olddagevent );
         olddagevent = null;
     }
-
+    if( e.target.innerHTML === "CO" ){
+        endconn( e );
+    }
     //draw connection while connecting nodes
     if( dodrawconn ){ 
         dodrawconn = false; 
@@ -1629,9 +1651,8 @@ function arithnode( x, y, typedenode ){
     m1.className = "nodemenent";
     m1.name = DARWINGS.length-1;
     m1.innerHTML = "CO";
-    m1.onclick = function(){};
-    m1.onpointerdown = function(){ startconn( event ); };
-    m1.onpointerup = function(){ endconn( event ); };
+    //m1.onpointerdown = function(){  };
+    //m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
     let m2 = document.createElement( "span" );
     m2.className = "nodemenent";
@@ -1733,9 +1754,8 @@ function insertTHEnodeStuff( CADDX, CADDY, label ){
     m1.className = "nodemenent";
     m1.name = DARWINGS.length-1;
     m1.innerHTML = "CO";
-    m1.onclick = function(){};
-    m1.onpointerdown = function(){ startconn( event ); };
-    m1.onpointerup = function(){ endconn( event ); };
+    //m1.onpointerdown = function(){ startconn( event ); };
+    //m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
 
     let m2 = document.createElement( "span" );
@@ -1860,9 +1880,8 @@ function buildmidiMen(){
     m1.name = ACTIVEONES.length-1;
     m1.innerHTML = "CO";
     m1.title = "Connections!";
-    m1.onclick = function(){};
-    m1.onpointerdown = function(){ startconn( event ); };
-    m1.onpointerup = function(){ endconn( event ); };
+    //m1.onpointerdown = function(){ startconn( event ); };
+    //m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
     let m2 = document.createElement( "span" );
     m2.className = "nodemenent";
@@ -2107,9 +2126,8 @@ function insertAnodemenu( ){
     m1.name = ACTIVEONES.length-1;
     m1.innerHTML = "CO";
     m1.title = "Connections!";
-    m1.onclick = function(){};
-    m1.onpointerdown = function(){ startconn( event ); };
-    m1.onpointerup = function(){ endconn( event ); };
+    //m1.onpointerdown = function(){ startconn( event ); };
+    //m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
     let m2 = document.createElement( "span" );
     m2.className = "nodemenent";
@@ -2310,10 +2328,19 @@ function permaineleminint( elem, index ){
 
 function inint_workbench( ){
     console.log("Workbench size: ", WIDTH, HEIGHT);
-    document.body.width = WIDTH;
-    document.body.height = HEIGHT;
-    document.body.style.width = WIDTH.toString()+"px";
-    document.body.style.height = HEIGHT.toString()+"px";
+    if( touchready( ) ){
+        document.body.style.position = "fixed"; 
+        document.body.style.overflow = "hidden";
+        document.body.width = "100%";
+        document.body.height = "100%";
+        document.body.style.width = "100%";
+        document.body.style.height = "100%";
+    } else {
+        document.body.width = WIDTH;
+        document.body.height = HEIGHT;
+        document.body.style.width = WIDTH.toString()+"px";
+        document.body.style.height = HEIGHT.toString()+"px";
+    }
 
     document.body.addEventListener('pointerup', function( e ){ onpointerupEventFkt(e); }, false);
     document.body.addEventListener('pointermove', function( e ){ pointermoveEvfkt(e); }, false);
@@ -2322,8 +2349,8 @@ function inint_workbench( ){
     let m13 = document.createElement( "input" );
     m13.style.fontSize = "400%";
     m13.style.position = "absolute";
-    m13.style.left = ((WIDTH/2)-100).toString()+"px";
-    m13.style.top = ((HEIGHT/2)-30).toString()+"px";
+    m13.style.left = "10px";//((WIDTH/2)-100).toString()+"px";
+    m13.style.top = "10px";//((HEIGHT/2)-30).toString()+"px";
     m13.style.zIndex = "100";
     m13.value = "Audio ON!";
     m13.type = "Button";
@@ -2354,16 +2381,21 @@ function inint_workbench( ){
 }
 
 function nande_ask_size( ){
-    let temw = prompt("Workbench width (no value given - screensize):");
-    if( temw && temw !== "" ){
-       WIDTH = parseInt( temw ); 
+    if( !touchready( ) ){
+        let temw = prompt("Workbench width (no value given - screensize):");
+        if( temw && temw !== "" ){
+           WIDTH = parseInt( temw ); 
+        } else {
+            WIDTH = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        }
+        let temh = prompt("Workbench height (no value given - screensize):");
+        if( temh && temh !== "" ){
+           HEIGHT = parseInt( temh ); 
+        } else {
+            HEIGHT = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+        }
     } else {
         WIDTH = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-    }
-    let temh = prompt("Workbench height (no value given - screensize):");
-    if( temh && temh !== "" ){
-       HEIGHT = parseInt( temh ); 
-    } else {
         HEIGHT = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
     }
 }
