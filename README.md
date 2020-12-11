@@ -63,6 +63,25 @@ The fist button in the menu does nothing. It is labeled *None*. The second butto
 
 ### Menu: MUSIC NOTATION NODE
 
+![](DokuPic/004_notationnode.png?raw=true)
+
+After the creation of a notation node you get a node displayed and consisting of a menu and a draw section.
+
+The button *CO* - is the target for the start / end of connections between the nodes.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *ED* - opens up/hides the drawing area for manipulation.
+
+![](DokuPic/005_drawingonnode.png?raw=true)
+
+The button *MO* - sets the modus of the notation-node (unused at the moment).
+
+The button *DU* - opens a promt that ask for a new duration value. After a input the new duration is set.
+
+The button *DO* - just activates the node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
 
 
 ### Menu: SPLIT NODE
@@ -85,6 +104,7 @@ The fist button in the menu does nothing. It is labeled *None*. The second butto
 # TESTED ON
 
 Chrome Browser Version 85.0.4183.102 (Offizieller Build) (64-Bit Linux)
+
 Firefox Browser Version 83.0 (64-Bit Linux)
 
 
