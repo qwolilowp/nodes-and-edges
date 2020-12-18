@@ -1,7 +1,7 @@
 # N O D E S A N D E D G E S
 
 ## WHAT IS IT
-It is a network sequencer, a AI supported sequencer, a aleatoric-nonaleatoric sequencer, a drawing music notation or experimental notation, a midi sequencer and a audio-data sequencer.
+It is a network (or a graph) sequencer, a AI supported sequencer, a aleatoric-nonaleatoric sequencer, a drawing music notation or experimental notation, a midi sequencer and a audio-data sequencer.
 
 The sequencing is done by arranging nodes (audio/midi/notation events) with edges between each other. The edges just pass the activity around and the nodes are active or not and release activity.
 
