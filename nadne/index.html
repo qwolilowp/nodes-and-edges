@@ -25,9 +25,6 @@
             font-family: Arial;
         }
         body {
-            
-           
-            
             -webkit-touch-callout: none;
             -webkit-user-select:none;
             -khtml-user-select:none;
@@ -38,6 +35,7 @@
         
         }
         .mainmen{
+            font-size: 150%;
             display: block;
             position: absolute;
             z-index: 5;
@@ -55,7 +53,7 @@
         }
         .nodemenent{
             border-radius: 2px;
-            border: 1px solid blue;
+            border: 1px solid black;
             cursor: pointer;
             margin: 2px;
             
@@ -65,7 +63,9 @@
             color: red;
         }
         .nodemen{
-            padding:2px;
+            
+            font-size: 160%;
+            padding:5px;
             -moz-user-select: none; 
             -khtml-user-select: none; 
             -webkit-user-select: none; 
@@ -82,11 +82,17 @@
             z-index:2;
         }
         .midinode{
+            font-size: 170%;
+            padding-top:20px;
             border: 1px solid black;
             position: absolute;
             background: white;
-            opacity:0.3;
+            opacity:0.4;
             z-index:3;
+        }
+
+        .midinode select{
+            font-size: 110%;
         }
 
         #nodesdrawbackground{
