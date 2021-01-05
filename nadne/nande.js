@@ -243,6 +243,17 @@ function str2ab( base64 ) {
     return bytes.buffer;
 }
 
+function parse_audiodesc(str) {
+    return str.split( '&' ).reduce(
+            function( params, param ){
+                let paramSplit = param.split('=').map(function(value) {
+                return decodeURIComponent(value.replace('+', ' '));
+            });
+            params[paramSplit[0]] = paramSplit[1];
+            return params;
+    }, {});
+}
+
 /*******************************************************************************
 
 CONN AND FREEDBACK DRAW
@@ -256,6 +267,7 @@ function startconn( e ){
     oly = e.pageY;
     
     console.log("from", fromindex); 
+    
     //start drawing
     dodrawconn = true;
 }
@@ -267,6 +279,9 @@ function endconn( e ){
     console.log("to", toindex);
     if( INOUT[ fromindex ].indexOf( toindex ) === -1 ){
         INOUT[ fromindex ].push( toindex );
+        if( MODUS[ fromindex ] === "switch" ){
+            DARWINGS[ fromindex ][2] = INOUT[ fromindex ].length; //set how many
+        }
     }
     if( e.target.parentNode.name === "sum" ){
         let count = 0;
@@ -275,7 +290,7 @@ function endconn( e ){
                 count += 1;
             }
         }
-        console.log("how many", count);
+        console.log("how many outs in sum", count, toindex);
         ACTIVEONES[ toindex ] = count;
         DARWINGS[ toindex ][2] = count;
         e.target.parentNode.children[5].innerHTML = count;
@@ -329,14 +344,14 @@ function drawallconn( ){
             let linw = 1;
             let colo = "#"+  Math.random().toString(16).substring(2, 8);//DARWINGS[ ooo ].type;//
             
-            if( ACTIVEONES[ ooo ] === -1 ){
+            if( ACTIVEONES[ ooo ] === -1 ){ //hier noch das switch beinchen angeben
                 connX.beginPath();
                 if( MODUS[ ooo ] === 0 ){ //diffent feedback of differet modi
-                    connX.rect( sx, sy, 250, 20 );
+                    connX.rect( sx, sy, 270, 35 );
                 } else if( MODUS[ ooo ] === 1 ){
-                    connX.rect( sx, sy, 50, 50 );
+                    connX.rect( sx, sy, 60, 65 );
                 } else {
-                    connX.rect( sx, sy, 20, 100 );
+                    connX.rect( sx, sy, 35, 100 );
                 }
                 //connX.arc( sx, sy, 20, 0, 2 * Math.PI, false);
                 
@@ -344,15 +359,22 @@ function drawallconn( ){
                 connX.fillStyle = colo;
                 connX.fill();
                 connX.closePath();
-                linw = 6;
+                linw = 15;
             } 
             
+            let ollinew = linw;
             for( let zzz in INOUT[ ooo ] ){
                 let kkk = INOUT[ ooo ][ zzz ];
-                
+        
+                if( MODUS[ ooo ] === "switch" &&
+                    parseInt( zzz ) === ACTIVEONES[ ooo ] ){
+                    linw = 10;
+                } else {
+                    linw = ollinew;
+                }
                 let ex = 0;
                 let ey = 0;
-                let colozwei = "#"+  Math.random().toString(16).substring(2, 8);//DARWINGS[ kkk ].type;//
+                let colozwei = colo;//DARWINGS[ kkk ].type;//
                 if( Array.isArray( DARWINGS[ kkk ] ) ){
                     ex = DARWINGS[ kkk ][0];
                     ey = DARWINGS[ kkk ][1];
@@ -365,12 +387,12 @@ function drawallconn( ){
                     connX.beginPath();
                     //
                     if( MODUS[ kkk ] === 0 ){ //diffent feedback of differet modi
-                        connX.rect( ex, ey, 250, 20 );
+                        connX.rect( ex, ey, 270, 35 );
                     } else if( MODUS[ kkk ] === 1 ){
-                        connX.rect( ex, ey, 50, 50 );
+                        connX.rect( ex, ey, 60, 65 );
                         //connX.arc(ex+outoffset, ey, 30, 0, 2 * Math.PI, false);
                     } else {
-                        connX.rect( ex, ey, 20, 100 );
+                        connX.rect( ex, ey, 35, 100 );
                     }
                     connX.fillStyle = colo;
                     connX.fill();
@@ -1009,13 +1031,18 @@ function streamtobuffer( astream ){
 function deactivate( index ){
     console.log("deactivate", index, ACTIVEONES[index], MODUS[ index ]);
     if( MODUS[ index ] === "sum" ){
-        
         ACTIVEONES[ index ] = DARWINGS[ index ][2];
         console.log("how many", ACTIVEONES[ index ], "toindex", index);
+    } else if( MODUS[ index ] === "switch" ){
+        ACTIVEONES[ index ] += 1;
+        if( DARWINGS[ index ][2] === ACTIVEONES[ index ] ){
+            ACTIVEONES[ index ] = 0;
+        }
+        //console.log("how many", ACTIVEONES[ index ], "toindex", index);
     } else {
         ACTIVEONES[index] = -2;
     }
-    drawallconn( );
+    
     if( MODUS[ index ] === "audiofile" ){
         let source = audioctx.createBufferSource( );
         source.buffer = AUDIOBUFFER[ DARWINGS[ index ][3] ];
@@ -1031,13 +1058,14 @@ function deactivate( index ){
             DARWINGS[ index ][7], //vel=0-128
         );
     }
+    drawallconn( );
 }
 
 function activate( index ){
-    console.log("activate", index, ACTIVEONES[index], MODUS[ index ]);
+    console.log("activate", index, ACTIVEONES[index], MODUS[ index ] );
     if( DO ){
         let durofthis = DURATIONS[ index ];
-        if( ACTIVEONES[index] === -3 && MODUS[ index ] !== "sum" ){
+        if( ACTIVEONES[index] === -3 && ( MODUS[ index ] !== "sum"  || MODUS[ index ] !== "switch" ) ){
             //console.log("muted");
             durofthis = 0;
         } else {
@@ -1045,6 +1073,10 @@ function activate( index ){
                 let realy = true;
                 if( MODUS[ index ] === "audiofile" ){//is audionode
                     DARWINGS[ index ][2].start(0);
+                } 
+
+                if( MODUS[ index ] === "url" ){//is audionode
+                    DARWINGS[ index ][2].play();
                 } 
                 
                 if( MODUS[ index ] === "midimag" ){
@@ -1066,13 +1098,21 @@ function activate( index ){
                     }
                 } 
 
+                
+
                 if( realy ){
-                    //console.log("Realy", ACTIVEONES[index], MODUS[ index ], durofthis);
-                    ACTIVEONES[ index ] = -1;
-                    for( let i in INOUT[index] ){ //move this outside of this if and keep the propagation of action
-                        setTimeout( function(){ activate( INOUT[index][ i ] ); } , durofthis+1); //after the amount of time the node durates activate the next in millisecs
+                    //console.log("Realy", index, ACTIVEONES[index], MODUS[ index ], durofthis);
+                    if( MODUS[ index ] === "switch" ){
+                        //console.log("switch on now", INOUT[index][ ACTIVEONES[ index ] ] );
+                        setTimeout( function(){ activate( INOUT[index][ ACTIVEONES[ index ] ] ); } , durofthis+1); 
+                        setTimeout( function(){ deactivate( index ); } , durofthis);
+                    } else {
+                        ACTIVEONES[ index ] = -1;
+                        for( let i in INOUT[index] ){ //move this outside of this if and keep the propagation of action
+                            setTimeout( function(){ activate( INOUT[index][ i ] ); } , durofthis+1); //after the amount of time the node durates activate the next in millisecs
+                        }
+                        setTimeout(function(){ deactivate( index ); } , durofthis);
                     }
-                    setTimeout(function(){ deactivate( index ); } , durofthis);
                 }
                 drawallconn();
             } 
@@ -1234,12 +1274,12 @@ async function integupload( allarr ){
                  });
                  
                 
-            } else if( allarr[7][r] ===  "split" || allarr[7][r] === "sum"  ){
+            } else if( allarr[7][r] ===  "split" || allarr[7][r] === "sum" || allarr[7][r] === "switch"  ){
                 CADDX = allarr[5][r][0];
                 CADDY = allarr[5][r][1];
                 TRAJ.push( allarr[6][r] );
                 DARWINGS.push( allarr[5][r] );
-                if(allarr[7][r] === "sum"){
+                if(allarr[7][r] === "sum" || allarr[7][r] === "switch"){
                     ACTIVEONES.push( allarr[10][r] );
                 } else {
                     ACTIVEONES.push( -2 );
@@ -1254,8 +1294,10 @@ async function integupload( allarr ){
                 }
                 if( allarr[7][r] === "split" ){
                     arithnode(CADDX, CADDY, "split");
-                } else {
+                } else if( allarr[7][r] === "sum" ){
                     arithnode(CADDX, CADDY, "sum");
+                } else {
+                    arithnode(CADDX, CADDY, "switch");
                 }
             } else if( allarr[7][r] === "midimag" ){
                 CADDX = allarr[5][r][0];
@@ -1265,23 +1307,37 @@ async function integupload( allarr ){
                 ACTIVEONES.push( allarr[10][r] );
                 DURATIONS.push( allarr[8][r] );
                 MODUS.push( allarr[7][r] );
-
+                let thisindexis = r+indexoffset;
+                //console.log("SpSU", r, thisindexis, allarr[9][r], CADDX, CADDY);
+                for( let i in allarr[9][r] ){
+                    console.log("conn", thisindexis, allarr[9][r][i]);
+                    INOUT[ thisindexis ].push( allarr[9][r][i] );
+                }
                 buildmidiMen();
 
+            } else if( allarr[7][r] === "url" ){
+
+                let aufromvidid = buildaudioelemfromYTvideoID( allarr[5][r][3], allarr[5][r][4], allarr[5][r][0], allarr[5][r][1] );
+                
+                if( aufromvidid !== null ){ // is this working????
+                    let thisindexis = r+indexoffset;
+                    for( let i in allarr[9][r] ){
+                        console.log("conn", thisindexis, allarr[9][r][i]);
+                        INOUT[ thisindexis ].push( allarr[9][r][i] );
+                    }
+                }
             } else {
                 console.log("unknown node type in upload!!!!")
             }
             //console.log(allarr);
         }
-        while(lock){
+        while( lock ){
             await Sleep(100);
         }
-        //console.log(INOUT);
     }
 }
 
-function exampleopen( e ){
-    //http request to netseq file!!
+function nonedone( e ){
     e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
 }
 
@@ -1425,7 +1481,6 @@ function settouchpos( event ){
 }
 
 function screenpostopagepos(x,y) { // crossbrowser version
-    
     let body = document.body;
     let docEl = document.documentElement;
 
@@ -1679,7 +1734,7 @@ function arithnode( x, y, typedenode ){
         m9.innerHTML = " "+DARWINGS[DARWINGS.length-1][2];
         d.appendChild( m9 );
         
-    } else {
+    } else if( typedenode === "split" ){
         let m11 = document.createElement( "span" );
         m11.className = "nodemenent";
         m11.innerHTML = "DU";
@@ -1725,6 +1780,20 @@ function insertSplitNode(e ){
     MODUS.push("split");
     
     arithnode(CADDX, CADDY, "split"); 
+    e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+}
+
+function insertSwitchNode(e ){
+    console.log("switch node");
+    TRAJ.push([]);
+    CADDX = e.pageX;
+    CADDY = e.pageY;
+    DARWINGS.push( [CADDX, CADDY, 0] );
+    ACTIVEONES.push( 0 );
+    DURATIONS.push( 0 );
+    MODUS.push("switch");
+    
+    arithnode(CADDX, CADDY, "switch"); 
     e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
 }
 
@@ -1827,10 +1896,91 @@ function insertAudNode( e ){
     e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
 }
 
+function buildaudioelemfromYTvideoID( theurlis, videoID, x, y ){
+    fetch( "cors.php?yuturl=https://www.youtube.com/get_video_info?video_id=" + videoID ).then( response => {
+        if( response.ok ){
+            response.text( ).then( theresp => {
+            //parse response to find audio info
+            let yd = parse_audiodesc( theresp );
+            let plaplaresp = JSON.parse( yd.player_response );
+            /*for( let a in plaplaresp){
+                console.log( a, plaplaresp[a] );
+            }*/
+            
+            let af = plaplaresp.streamingData.adaptiveFormats;
+            let ainfo = af.findIndex(obj => obj.audioQuality);
+            console.log(ainfo);
+          
+            // get the URL for the audio file
+            let audioURL = af[ ainfo ].url;
+            if( audioURL !== undefined ){
+                console.log("Call audio stream:", audioURL);
+                //set duration of node
+                let audio = new Audio( audioURL );
+                audio.addEventListener("canplaythrough", event => {
+                    console.log("URL, can play now", videoID);
+                });
+
+                CADDX = x;
+                CADDY = y;
+                TRAJ.push( [] );
+                MODUS.push("url");
+                ACTIVEONES.push( -2 );
+                DURATIONS.push( parseInt(af[ ainfo ].approxDurationMs) );
+
+                DARWINGS.push( [CADDX, CADDY, audio, theurlis, videoID, parseInt(af[ ainfo ].approxDurationMs)] );
+                let lab = videoID + " ("+ af[ ainfo ].approxDurationMs +")";
+                insertTHEnodeStuff( CADDX, CADDY, lab);
+                
+            } else {
+                //OH NO - NO URL OF STREAM DATA GIVEN, need to decrypt the signatureCypher
+                //first get the google JS
+                //parse the JS, Parser: https://github.com/mps-youtube/pafy/blob/develop/pafy/backend_shared.py
+                //extract the decryption
+                //do the audio elemnt
+                alert("Audio URL encryption unkown!");
+                return null;
+            }
+          
+        });
+      }
+    });
+}
+
+function insertUrlNode( e ){
+    let theurlis = prompt("Enter Youtube URL!");
+    if( theurlis.indexOf("youtube") !== -1 ||
+        theurlis.indexOf("youtu.be") !== -1 ){ 
+        let videoID = null; // YouTube video ID
+        if( theurlis.indexOf("?v=") !== -1 ){
+            let tempsplit = theurlis.split( "?v=" );
+            videoID = tempsplit[tempsplit.length-1];
+        } else {
+            let tempsplit = theurlis.split( "/" );
+            videoID = tempsplit[tempsplit.length-1];
+        }
+        
+        //https://www.youtube.com/watch?v=Mtqbwy-fgFc - not working
+        //https://youtu.be/hK2898UEyRE - working
+        //https://youtu.be/tX54jiLjZno
+        //https://youtu.be/IX7moF_pD5M
+        //https://youtu.be/ODkERmUh0hQ
+
+        console.log("Got videoID: ", videoID );
+        // Fetch video info (using a proxy to avoid CORS errors) 
+        buildaudioelemfromYTvideoID( theurlis, videoID, e.pageX, e.pageY );
+        
+    } else {
+        alert("Just Youtube supported at the moment.")
+    }
+    //close menu
+    e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+}
+
 function insertAudRecNode( e ){
     CADDX = e.pageX;
     CADDY = e.pageY;
-    if(navigator.getUserMedia){
+    if( navigator.getUserMedia ){
         navigator.getUserMedia( {
             "audio": {
                 "mandatory": {
@@ -1950,15 +2100,66 @@ function buildmidiMen(){
         p1.appendChild( o );
     }
     midimen.appendChild( p1 );
-    //offset
+    //offset -- turned into a 
     let p2 = document.createElement("select");
     p2.name = ACTIVEONES.length-1;
-    p2.title = "Channeloffset 1-6";
-    p2.onchange = function( evvv ){ DARWINGS[evvv.target.name][4] = evvv.target.value; };
+    //p2.title = "Channeloffset 1-6";
+    p2.title = "Channel 1-16";
+    p2.onchange = function( evvv ){ 
+        if( evvv.target.value === 1 ){ //channel 1 selected
+            DARWINGS[evvv.target.name][4] = 1; //offset
+            DARWINGS[evvv.target.name][5] = 0; //chan ondex peroffset
+        } else if( evvv.target.value === 2 ){ //channel 2 selected
+            DARWINGS[evvv.target.name][4] = 1; //offset
+            DARWINGS[evvv.target.name][5] = 1; //chan ondex peroffset
+        } else if( evvv.target.value === 3 ){
+            DARWINGS[evvv.target.name][4] = 1; //offset
+            DARWINGS[evvv.target.name][5] = 2; //chan ondex peroffset
+        } else if( evvv.target.value === 4 ){
+            DARWINGS[evvv.target.name][4] = 2; //offset
+            DARWINGS[evvv.target.name][5] = 0; //chan ondex peroffset
+        } else if( evvv.target.value === 5 ){
+            DARWINGS[evvv.target.name][4] = 2; //offset
+            DARWINGS[evvv.target.name][5] = 1; //chan ondex peroffset
+        } else if( evvv.target.value === 6 ){
+            DARWINGS[evvv.target.name][4] = 2; //offset
+            DARWINGS[evvv.target.name][5] = 2; //chan ondex peroffset
+        } else if( evvv.target.value === 7 ){
+            DARWINGS[evvv.target.name][4] = 3; //offset
+            DARWINGS[evvv.target.name][5] = 0; //chan ondex peroffset
+        } else if( evvv.target.value === 8 ){
+            DARWINGS[evvv.target.name][4] = 3; //offset
+            DARWINGS[evvv.target.name][5] = 1; //chan ondex peroffset
+        } else if( evvv.target.value === 9 ){
+            DARWINGS[evvv.target.name][4] = 3; //offset
+            DARWINGS[evvv.target.name][5] = 2; //chan ondex peroffset
+        } else if( evvv.target.value === 10 ){
+            DARWINGS[evvv.target.name][4] = 4; //offset
+            DARWINGS[evvv.target.name][5] = 0; //chan ondex peroffset
+        } else if( evvv.target.value === 11 ){
+            DARWINGS[evvv.target.name][4] = 4; //offset
+            DARWINGS[evvv.target.name][5] = 1; //chan ondex peroffset
+        } else if( evvv.target.value === 12 ){
+            DARWINGS[evvv.target.name][4] = 4; //offset
+            DARWINGS[evvv.target.name][5] = 2; //chan ondex peroffset
+        } else if( evvv.target.value === 13 ){
+            DARWINGS[evvv.target.name][4] = 5; //offset
+            DARWINGS[evvv.target.name][5] = 0; //chan ondex peroffset
+        } else if( evvv.target.value === 14 ){
+            DARWINGS[evvv.target.name][4] = 5; //offset
+            DARWINGS[evvv.target.name][5] = 1; //chan ondex peroffset
+        } else if( evvv.target.value === 15 ){
+            DARWINGS[evvv.target.name][4] = 5; //offset
+            DARWINGS[evvv.target.name][5] = 2; //chan ondex peroffset
+        } else if( evvv.target.value === 16 ){
+            DARWINGS[evvv.target.name][4] = 6; //offset
+            DARWINGS[evvv.target.name][5] = 0; //chan ondex peroffset
+        } 
+    };
     if( DARWINGS[ACTIVEONES.length-1][4] === undefined ){
         DARWINGS[ACTIVEONES.length-1].push(1);
     }
-    for( let t = 1; t < 7; t+=1 ){
+    for( let t = 1; t < 17; t+=1 ){
         let o =   document.createElement( "option" ); 
         o.value = t;
         if( o.value === DARWINGS[ACTIVEONES.length-1][4] ){
@@ -1968,7 +2169,7 @@ function buildmidiMen(){
         p2.appendChild( o );
     }
     midimen.appendChild( p2 );
-    //ch
+    //ch --- channel index per offset, but not used
     let p3 = document.createElement("select");
     p3.name = ACTIVEONES.length-1;
     p3.title = "Channelindex in Offset 0-2";
@@ -1985,7 +2186,7 @@ function buildmidiMen(){
         o.innerHTML = t;
         p3.appendChild( o );
     }
-    midimen.appendChild( p3 );
+    //midimen.appendChild( p3 );
     //n 
     
     let p4 = document.createElement("select");
@@ -2203,8 +2404,34 @@ function showmainmenu( e ){
     let m9 = document.createElement( "div" );
     m9.innerHTML = "None";
     m9.className = "mainmenent";
-    m9.onclick = function(){ exampleopen( event ); };
+    m9.onclick = function(){ nonedone( event ); };
     d.appendChild( m9 );
+
+    
+    let m2 = document.createElement( "div" );
+    m2.title = "Splits a input to some outputs and can add a delay time.";
+    m2.innerHTML = "Add SplitNode";
+    m2.className = "mainmenent";
+    m2.onclick = function(){ insertSplitNode( event ); };
+    d.appendChild( m2 );
+
+    let m18 = document.createElement( "div" );
+    m18.title = "Activity is switched across the outputs.";
+    m18.innerHTML = "Add SwitchNode";
+    m18.className = "mainmenent";
+    m18.onclick = function(){ insertSwitchNode( event ); };
+    d.appendChild( m18 );
+    
+
+    let m3 = document.createElement( "div" );
+    m3.title = "Sum Node counts input and after the amount of activations reached in it fires.";
+    m3.innerHTML = "Add SumNode";
+    m3.className = "mainmenent";
+    m3.onclick = function(){ insertSumNode( event ); };
+    d.appendChild( m3 );
+
+    let m20 = document.createElement( "br" );
+    d.appendChild( m20 );
 
     let m1 = document.createElement( "div" );
     m1.innerHTML = "Add NotationNode";
@@ -2212,18 +2439,7 @@ function showmainmenu( e ){
     m1.className = "mainmenent";
     m1.onclick = function(){ drawNode( event ); };
     d.appendChild( m1 );
-    let m2 = document.createElement( "div" );
-    m2.title = "Splits a input to some outputs and can add a delay time.";
-    m2.innerHTML = "Add SplitNode";
-    m2.className = "mainmenent";
-    m2.onclick = function(){ insertSplitNode( event ); };
-    d.appendChild( m2 );
-    let m3 = document.createElement( "div" );
-    m3.title = "Sum Node counts input and after the amount of activations reached in it fires.";
-    m3.innerHTML = "Add SumNode";
-    m3.className = "mainmenent";
-    m3.onclick = function(){ insertSumNode( event ); };
-    d.appendChild( m3 );
+
     let m12 = document.createElement( "div" );
     m12.title = "Add a node to play a sound file.";
     m12.innerHTML = "Add AudioFileNode";
@@ -2246,6 +2462,14 @@ function showmainmenu( e ){
         m15.onclick = function(){ insertMidiNode( event ); };
         d.appendChild( m15 );
     }
+
+    let m19 = document.createElement( "div" );
+    m19.title = "Add a node to play back sound from URL.";
+    m19.innerHTML = "Add UrlNode";
+    m19.className = "mainmenent";
+    m19.onclick = function(){ insertUrlNode( event ); };
+    d.appendChild( m19 );
+    
     let m16 = document.createElement( "br" );
     d.appendChild( m16 );
 
