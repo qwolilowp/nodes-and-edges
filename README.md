@@ -22,6 +22,10 @@ There are two nodes to just affect the activity flowing through the arrangement 
 
 The sum-node has a internal count of incoming activation. If the amount of activity has arrived the node releases a activation. The count could be freely set or is the sum of all incoming connections.
 
+### SWITCH-NODE
+
+The switch-node routs incoming activation to one of its outputs. It starts with the first output and went on to the last, if the last is reached it continues with the first output.
+
 ### AUDIO-FILE-NODE
 
 The audiofile-node is a node that can play back audio files. At the moment it is restricted to .wav and .mp3 files.
@@ -33,6 +37,10 @@ The audio-recorder-node is a node that record a stream from the microphone. If a
 ### MIDI-NODE
 
 The midi-node release MIDI messages. Note it uses WebMidi API, which must be supported by your browser. Also your operating system needs a MIDI configuration or tool. See the notes in this section: https://github.com/qwolilowp/Z_TENNOT_IU/blob/master/README.md#midi
+
+### URL-NODE
+
+The url-node is a node that asks for a youtube URL and playes back the sound from the video behind the link, when activated.
 
 
 # USAGE
@@ -115,6 +123,19 @@ The button *MU* - mutes i.e. disables the node. No activation is propagated. Cou
 
 The button *DU* - opens a promt that ask for a new duration value (in millisecends). After a input the new duration is set. Duration is displayed after the node menu.
 
+### Menu: SWITCH NODE
+
+
+![](DokuPic/011_switchnode.png?raw=true)
+
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
+The button *CO* - is the target for the start / end of connections between the nodes.  Every outgoing connection is switched, the switch is triggerd by any incomming activation.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
+
 
 ### Menu: AUDIO FILE NODE
 
@@ -173,20 +194,23 @@ The button *MU* - mutes i.e. disables the node. No activation is propagated. Cou
 
 Midi menu:
 
-The first select is a choice between the midi massage types: note (note), aftertouch (adtert) and pitchbend (pibend).
+The first select is a choice between the midi massage types: note (note), aftertouch (adtert) and pitchbend (pibend). The next select is the midi channel (1-16). The third select is for the pitch. The last select sets the velocity.
 
-The next two selects encode the midi channel in use:
-|                | 0           | 1            | 2            |
-| :------------- | :----------:| :----------: | -----------: |
-|  1             | Chn1        | Chn2         | Chn3         |
-|  2             | Chn4        | Chn5         | Chn6         |
-|  3             | Chn7        | Chn8         | Chn9         |
-|  4             | Chn10       | Chn11        | Chn12        |
-|  5             | Chn13       | Chn14        | Chn15        |
-|  6             | Chn16       |              |              |
+### Menu: URL NODE
 
+Immediately after clicking the *Add UrlNode* button a dialog will request the Youtube URL. After the node is cresated the Video ID is displayed and in brackets the duration of the node. The Duration of the node equals the duration of video.
 
-The third select is for the pitch. The last select sets the velocity.
+![](DokuPic/012_urlnode.png?raw=true)
+
+The button *hand* - is the point to grab and drag around to give the node a new position on the workbench.
+
+The button *CO* - is the target for the start / end of connections between the nodes.
+
+The button *XC* - deletes all outgoing connections of the notation-node.
+
+The button *DO* - just activates the node.
+
+The button *MU* - mutes i.e. disables the node. No activation is propagated. Could be used to close parts of the network.
 
 ## ACTION of activation
 
