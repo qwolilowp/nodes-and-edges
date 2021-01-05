@@ -125,6 +125,7 @@ The button *DU* - opens a promt that ask for a new duration value (in millisecen
 
 ### Menu: SWITCH NODE
 
+It is a switch between outputs of the node. The next activation path is highlighted by a thicker outgoing edge.
 
 ![](DokuPic/011_switchnode.png?raw=true)
 
