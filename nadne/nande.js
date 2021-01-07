@@ -1716,13 +1716,9 @@ function arithnode( x, y, typedenode ){
     m2.name = ACTIVEONES.length-1;
     m2.onpointerup = function(){ xconn( event ); };
     d.appendChild( m2 );
-    let m8 = document.createElement( "span" );
-    m8.className = "nodemenent";
-    m8.innerHTML = "MU";
-    m8.name = DARWINGS.length-1;
-    m8.onclick = function(){ munode( event ); };
-    d.appendChild( m8 );
+    
     if( typedenode === "sum" ){
+        
         let m11 = document.createElement( "span" );
         m11.className = "nodemenent";
         m11.innerHTML = "SC";
@@ -1735,6 +1731,12 @@ function arithnode( x, y, typedenode ){
         d.appendChild( m9 );
         
     } else if( typedenode === "split" ){
+        let m8 = document.createElement( "span" );
+        m8.className = "nodemenent";
+        m8.innerHTML = "MU";
+        m8.name = DARWINGS.length-1;
+        m8.onclick = function(){ munode( event ); };
+        d.appendChild( m8 );
         let m11 = document.createElement( "span" );
         m11.className = "nodemenent";
         m11.innerHTML = "DU";
