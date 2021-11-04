@@ -2,14 +2,16 @@
 <html lang="de">
 	<head>
 		<meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <!--meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     	<meta name=”viewport” content=”width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;” />
     	<meta name=”viewport” content=”width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=false;” />
     	<meta name=”viewport” content=”width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;” />
     	<meta name="viewport" content="width=device-width, user-scalable=no" />
+        
     	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no"-->
     	<meta name="HandheldFriendly" content="true">
-    	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    	
 
     	<link rel="shortcut icon" href="favicon.ico" />
 	    <link rel="apple-touch-icon" href="favicon.ico" />
@@ -34,8 +36,14 @@
             user-select:none;
         
         }
+        .kreuzschiene{
+            display: block;
+            position: absolute;
+            z-index: 5;
+
+        }
         .mainmen{
-            font-size: 150%;
+            font-size: 110%;
             display: block;
             position: absolute;
             z-index: 5;
@@ -44,7 +52,8 @@
             border-radius: 2px;
             border: 1px solid gray;
             cursor: pointer;
-            background: white;
+            background: black;
+            color: darkgray;
             margin:2px;
             padding:1px;
         }
@@ -52,20 +61,22 @@
             color: red;
         }
         .nodemenent{
-            border-radius: 2px;
+            border-radius: 3px;
             border: 1px solid black;
             cursor: pointer;
             margin: 2px;
-            
-            background:white;
+            padding: 2px;
+            background: black;
+            color: darkgray;
         }
         .nodemenent:hover {
             color: red;
         }
         .nodemen{
-            
-            font-size: 160%;
+            border-radius: 5px;
+            font-size: 100%;
             padding:5px;
+            
             -moz-user-select: none; 
             -khtml-user-select: none; 
             -webkit-user-select: none; 
@@ -82,7 +93,7 @@
             z-index:2;
         }
         .midinode{
-            font-size: 170%;
+            font-size: 100%;
             padding-top:20px;
             border: 1px solid black;
             position: absolute;
@@ -92,7 +103,7 @@
         }
 
         .midinode select{
-            font-size: 110%;
+            font-size: 100%;
         }
 
         #nodesdrawbackground{

@@ -1,6 +1,7 @@
+
 /*
 
-nadne  -> nodes and edges sequnecer, 2020 
+nadne  -> nodes and edges sequnecer, 2021 
 
 GPLv3 copyrigth
 
@@ -28,6 +29,10 @@ let lock = true;
 //globs
 let WIDTH = 0;
 let HEIGHT = 0;
+let mainmenwidth = null;
+let mainmenlength = null;
+let maxnodemenwidth = null;
+let maxnodemenlength = null;
 
 
 let DARWINGS = []; //draw area part of the node - or lets sy the DATA PART OF THE NODE
@@ -52,8 +57,8 @@ let touchx = null;
 let touchy = null;
 let backgroundof = "white";
 let linecolor = "black";
-let inoffset = 20;
-let outoffset = 5;
+let inoffset = 0;//20;
+let outoffset = 0;//5;
 let fromindex = null;
 let toindex = null;
 let dodrawconn = false;
@@ -195,6 +200,22 @@ function readFROM( name, objstname, theindex, dothis, withdata ){
                     HELPER FKT
 
 *******************************************************************************/
+function getpositiononpage( element ){
+    if( element.nodeType ){
+        var rect = element.getBoundingClientRect( );
+        var elementLeft, elementTop; //x F y
+        var scrollTop = document.documentElement.scrollTop ?
+                        document.documentElement.scrollTop:document.body.scrollTop;
+        var scrollLeft = document.documentElement.scrollLeft ?                   
+                         document.documentElement.scrollLeft:document.body.scrollLeft;
+        elementTop = rect.top+scrollTop;
+        elementLeft = rect.left+scrollLeft;
+        return [ elementTop, elementLeft ];
+    } else {
+        return false;
+    }
+}
+
 function touchready( ){
     if( "ontouchstart" in window ){
         return true;
@@ -266,15 +287,16 @@ function startconn( e ){
     olx = e.pageX;
     oly = e.pageY;
     
-    console.log("from", fromindex); 
+    console.log("from", fromindex, olx, oly); 
     
     //start drawing
     dodrawconn = true;
 }
 
-function endconn( e ){
-    //console.log(e.pageX, e.pageY);
-    let thereachedelem = document.elementFromPoint( e.pageX, e.pageY )
+function endconn( e ){ 
+    //console.log(e.pageX, e.pageY, e.screenX, e.screenY, e);
+    let thereachedelem = document.elementFromPoint( e.pageX - window.pageXOffset, e.pageY-window.pageYOffset );
+    //console.log( thereachedelem );
     toindex = parseInt(thereachedelem.name);
     console.log("to", toindex);
     if( INOUT[ fromindex ].indexOf( toindex ) === -1 ){
@@ -290,11 +312,23 @@ function endconn( e ){
                 count += 1;
             }
         }
-        console.log("how many outs in sum", count, toindex);
-        ACTIVEONES[ toindex ] = count;
-        DARWINGS[ toindex ][2] = count;
-        e.target.parentNode.children[5].innerHTML = count;
+        if( DARWINGS[ toindex ][2] < count ){
+            //console.log("how many ins on sum", count, toindex, ACTIVEONES[ toindex ], DARWINGS[ toindex ][2]);
+            ACTIVEONES[ toindex ] = count;
+            DARWINGS[ toindex ][2] = count;
+            e.target.parentNode.children[4].innerHTML = count;
+        }
     } 
+    if( MODUS[fromindex] === "stocha" ){
+        let propa = prompt("Give a propability (0-100 %) to the output of the stochastic node: ");
+        if( propa > 0 && propa <= 100 ){
+            DARWINGS[ fromindex ][3].push( parseInt( propa ) );
+            DARWINGS[ fromindex ][4].push( [] );
+        }
+        let fromnode = document.getElementById( (fromindex+1).toString() );
+        fromnode.children[4].innerHTML = " " +DARWINGS[ fromindex ][3].join(", ");
+        //console.log(DARWINGS[ fromindex ][3], fromnode)
+    }
     
     dodrawconn = false;
     drawallconn();
@@ -302,6 +336,10 @@ function endconn( e ){
 
 function xconn( e ){
     INOUT[ parseInt(e.target.name) ] = [];
+    if( e.target.parentNode.name == "stocha"){
+        DARWINGS[ parseInt(e.target.name) ][3] = [];
+        DARWINGS[ parseInt(e.target.name) ][4] = [];
+    }
     drawallconn();
 }
 
@@ -346,13 +384,14 @@ function drawallconn( ){
             
             if( ACTIVEONES[ ooo ] === -1 ){ //hier noch das switch beinchen angeben
                 connX.beginPath();
-                if( MODUS[ ooo ] === 0 ){ //diffent feedback of differet modi
-                    connX.rect( sx, sy, 270, 35 );
+                connX.rect( sx, sy-maxnodemenlength, maxnodemenwidth+10+maxnodemenlength, maxnodemenlength*2.3 );
+                /*if( MODUS[ ooo ] === 0 ){ //diffent feedback of differet modi
+                    connX.rect( sx, sy-maxnodemenlength, maxnodemenwidth+10+maxnodemenlength, maxnodemenlength*2.5 );
                 } else if( MODUS[ ooo ] === 1 ){
-                    connX.rect( sx, sy, 60, 65 );
+                    connX.rect( sx, sy, maxnodemenlength*2, maxnodemenwidth );
                 } else {
-                    connX.rect( sx, sy, 35, 100 );
-                }
+                    connX.rect( sx, sy, maxnodemenwidth+50, maxnodemenlength*2 );
+                }*/
                 //connX.arc( sx, sy, 20, 0, 2 * Math.PI, false);
                 
                     
@@ -383,17 +422,18 @@ function drawallconn( ){
                     ex = parseInt( DARWINGS[ kkk ].style.left.replace("px", "") );
                     ey = parseInt( DARWINGS[ kkk ].style.top.replace("px", "") );
                 }
-                if( ACTIVEONES[ kkk ] === -1 ){ //active
+                if( ACTIVEONES[ kkk ] === -1 && kkk !== ooo){ //active
                     connX.beginPath();
                     //
-                    if( MODUS[ kkk ] === 0 ){ //diffent feedback of differet modi
+                    connX.rect( ex, ey-maxnodemenlength, maxnodemenwidth+10+maxnodemenlength, maxnodemenlength*2.3 );
+                    /*if( MODUS[ kkk ] === 0 ){ //diffent feedback of differet modi
                         connX.rect( ex, ey, 270, 35 );
                     } else if( MODUS[ kkk ] === 1 ){
                         connX.rect( ex, ey, 60, 65 );
                         //connX.arc(ex+outoffset, ey, 30, 0, 2 * Math.PI, false);
                     } else {
                         connX.rect( ex, ey, 35, 100 );
-                    }
+                    }*/
                     connX.fillStyle = colo;
                     connX.fill();
                     connX.closePath();
@@ -402,17 +442,67 @@ function drawallconn( ){
                 connX.arc( sx, sy, 20, 0, 2 * Math.PI, false);
                 connX.fillStyle = colo;
                 connX.fill();
-                connX.closePath();  */   
+                connX.closePath();   */
                 
                 
                 connX.strokeStyle = colo;
                 connX.beginPath();
                 connX.lineWidth = linw;
-                connX.moveTo( sx+outoffset, sy ); 
-                connX.lineTo( sx+outoffset, ey );
+                //console.log(sx, ex, sy, ey )
+                let rangesx = null;
+                if( ex > sx ){
+                    connX.moveTo( sx+outoffset, sy ); 
+                    let dx = Math.round(Math.abs(ex-sx)/2);
+                    let dy = Math.round(Math.abs(ey-sy)/2);
+                    if(dx < 50){
+                        dx = 50;
+                    } 
+                    if(dx > 200){
+                        dx = 200;                        
+                    }
+                    if(dy < 50){
+                        dy = 50;
+                    } 
+                    if(dy > 200){
+                        dy = 200;                        
+                    }
+                    rangesx = sx-dx;
+                    if( sy < ey ){
+                        connX.lineTo( rangesx+outoffset, sy+dy );
+                    } else {
+                        connX.lineTo( rangesx+outoffset, ey+dy );
+                    }
+                    connX.lineTo( rangesx+outoffset, ey );
+                    connX.lineTo( ex+inoffset, ey );
 
-                 
-                connX.lineTo( ex+inoffset, ey );
+                } else {
+                    connX.moveTo( sx+outoffset, sy );  
+                    let d = Math.round((sx-ex));
+                    if(d < 50){
+                        d = 50;
+                    } 
+                    if(d > 200){
+                        d = 200;
+                    }
+                    rangesx = ex-d;
+                    connX.lineTo( rangesx+outoffset, sy+Math.round((ey-sy)/2) );
+                    connX.lineTo( rangesx+outoffset, ey );
+                    connX.lineTo( ex+inoffset, ey );
+                }
+                
+                let parts = (ex-rangesx)/3;
+                let pfsize = Math.round(maxnodemenlength/2);
+                connX.moveTo( rangesx+(parts), ey );
+                connX.lineTo( rangesx+(parts), ey-pfsize );
+                connX.lineTo( rangesx+(2*parts), ey );
+                connX.lineTo( rangesx+(parts), ey+pfsize );
+                connX.lineTo( rangesx+(parts), ey );
+
+                connX.moveTo( rangesx+(2*parts), ey );
+                connX.lineTo( rangesx+(2*parts), ey-pfsize );
+                connX.lineTo( rangesx+(3*parts), ey );
+                connX.lineTo( rangesx+(2*parts), ey+pfsize );
+                connX.lineTo( rangesx+(2*parts), ey );
                 connX.stroke();
                 connX.closePath();
                 
@@ -520,6 +610,7 @@ function onpointerupEventFkt( e ){
         drawnice = false;
         let x = Math.round(e.pageX-parseInt(e.target.style.left.replace("px","")));
         let y = Math.round(e.pageY-parseInt(e.target.style.top.replace("px","")));
+    
         currtraj.push([x,y]);
         //console.log(TRAJ, e.target.name);
         TRAJ[parseInt(e.target.name)].push( currtraj );
@@ -533,6 +624,7 @@ function onpointerupEventFkt( e ){
         olddagevent = null;
     }
     if( e.target.innerHTML === "CO" ){
+        //console.log(e);
         endconn( e );
     }
     //draw connection while connecting nodes
@@ -1013,8 +1105,12 @@ function streamtobuffer( astream ){
     let m13 = document.createElement( "input" );
     m13.style.fontSize = "400%";
     m13.style.position = "absolute";
-    m13.style.left = ((WIDTH/2)-100).toString()+"px";
-    m13.style.top = ((HEIGHT/2)-30).toString()+"px";
+    let ih = (window.innerHeight || document.documentElement.clientHeight);
+    let iw = (window.innerWidth || document.documentElement.clientWidth);
+    let oh = (window.pageYOffset || document.documentElement.pageYOffset);
+    let ow = (window.pageXOffset || document.documentElement.pageXOffset);
+    m13.style.left = (((iw/2)-100)+ow).toString()+"px";
+    m13.style.top = (((ih/2)-30)+oh).toString()+"px";
     m13.style.zIndex = "100";
     m13.value = "Stop Rec!";
     m13.type = "Button";
@@ -1102,7 +1198,41 @@ function activate( index ){
 
                 if( realy ){
                     //console.log("Realy", index, ACTIVEONES[index], MODUS[ index ], durofthis);
-                    if( MODUS[ index ] === "switch" ){
+                    if( MODUS[ index ] === "stocha" ){   
+                        //console.log("stocha active");   
+                        // markov cov
+                        // aktuelle Ausprägung der bedingten Wahrscheinlichkeiten
+                        let cuurrbedwahrsch = []
+                        let ttt = (Math.floor(Math.random() * 10)+1)*10; //würfeln
+                        for( let trans in DARWINGS[ index ][4] ){
+                            let tttt = ttt;
+                            for( let val in DARWINGS[ index ][4][trans] ){
+                                tttt += DARWINGS[ index ][4][trans][val];
+                            }
+                            tttt = tttt/(DARWINGS[ index ][4][trans].length+1);
+                            cuurrbedwahrsch.push(tttt);
+                        }  
+                        //console.log(ttt, cuurrbedwahrsch, DARWINGS[ index ][4]);
+                        // abgleich mit den gegeben wahrscheinlichkeiten
+                        let maxtotake = 0;
+                        let indexatmax = null;
+                        for( let b in cuurrbedwahrsch ){
+                            //if( cuurrbedwahrsch[ b ] <= DARWINGS[ index ][ 3 ][ b ] ){
+                                //connection takable
+                                //console.log("connection takable to: ", b, DARWINGS[ index ][ 3 ][ b ] - cuurrbedwahrsch[ b ] );
+                                if( maxtotake <= Math.abs(DARWINGS[ index ][ 3 ][ b ] - cuurrbedwahrsch[ b ]) ){
+                                    maxtotake = DARWINGS[ index ][ 3 ][ b ] - cuurrbedwahrsch[ b ];
+                                    indexatmax = b;
+                                }
+                            //} 
+                        }      
+                        if(indexatmax != null){
+                            DARWINGS[ index ][4][indexatmax].push( ttt ); //this is growing infinitivly - FIX length of array
+                            //console.log("take connection to ", indexatmax, INOUT[index], INOUT[index][indexatmax], );
+                            setTimeout( function(){ activate( INOUT[index][indexatmax] ); } , durofthis+1); 
+                        }
+                        setTimeout( function(){ deactivate( index ); } , durofthis);
+                    } else if( MODUS[ index ] === "switch" ){
                         //console.log("switch on now", INOUT[index][ ACTIVEONES[ index ] ] );
                         setTimeout( function(){ activate( INOUT[index][ ACTIVEONES[ index ] ] ); } , durofthis+1); 
                         setTimeout( function(){ deactivate( index ); } , durofthis);
@@ -1120,7 +1250,6 @@ function activate( index ){
     } else {
         let count = 0;
         for( let a in ACTIVEONES ){
-            
             if( ACTIVEONES[a] === -2 ){
                 count += 1;
             }
@@ -1140,30 +1269,86 @@ function activate( index ){
 *******************************************************************************/
 
 //fkt emitted by the menu of the nodes ....
+let dialogresult = null;
+function askastringnumber( anzeige, cbf ){
+    dialogresult = null;
+    let mainelm = document.createElement( "div" );  
+    mainelm.innerHTML = anzeige;  
+    mainelm.style.position = "absolute";
+    mainelm.id = "entersomething";
+    mainelm.style.background = "#"+  Math.random().toString(16).substring(2, 8);
+    mainelm.style.left = window.pageXOffset.toString() +"px";
+    mainelm.style.top = window.pageYOffset.toString() +"px";
+    mainelm.style.zIndex = 6;
+    mainelm.style.padding = "5px";
+
+    let inp = document.createElement( "input" ); 
+    inp.id = "inputtt";
+    inp.display = "block";
+    mainelm.appendChild( inp );
+
+    let signs = ["b","c","d","f","g","h","j","k","l","m","n","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"];
+    for( let s in signs ){
+        let si = document.createElement( "span" );  
+        si.style.border = "1px solid black";
+        si.style.margin = "2px";
+        si.style.padding = "1%";
+        si.style.cursor = "pointer";
+        si.style.display = "inline-block";
+        si.style.background = "#"+  Math.random().toString(16).substring(2, 8);
+        si.innerHTML = signs[s];
+        si.name = signs[s];
+        si.onclick = function( ){ document.getElementById( "inputtt" ).value += this.name };
+        mainelm.appendChild( si )
+    }
+    let done = document.createElement( "span" );
+    done.style.border = "1px solid black";
+    done.style.margin = "2px";
+    done.style.padding = "1%";
+    done.style.cursor = "pointer";
+    done.style.display = "inline-block";
+    done.style.background = "white";
+    done.innerHTML = "OK";
+    done.onclick = function( ){cbf( document.getElementById( "inputtt" ).value); document.body.removeChild( document.getElementById( "entersomething" ))};
+    mainelm.appendChild( done );
+    document.body.appendChild( mainelm );
+    inp.focus();
+}
+
 
 function setDur( elem ){
     let index = parseInt( elem.name );
-    let temdur = prompt("New Duration in msec: ");
-    if( temdur && temdur !== "" ){
-        DURATIONS[index] = parseInt(temdur);
-        elem.parentNode.children[elem.parentNode.children.length-1].innerHTML = " "+temdur;
+    let callback = function( temdur ){ //prompt("New Duration in msec: ");
+        //console.log(, "temdur", index );
+        temdur = parseInt(temdur);
+        if( temdur && temdur !== "" && temdur != NaN ){
+            DURATIONS[index] = temdur;
+            elem.parentNode.children[elem.parentNode.children.length-1].innerHTML = " "+ temdur.toString( );
+        }
     }
+    askastringnumber("New Duration in msec: ", callback);
 }
 
 function setCount( elem ){
     let index = parseInt( elem.name );
-    let temdur = prompt("New Duration in msec: ");
-    if( temdur && temdur !== "" ){
-        DARWINGS[index][2] = parseInt(temdur);
-        elem.parentNode.children[elem.parentNode.children.length-3].innerHTML = " "+temdur;
+    let callback = function( temdur ){ 
+        temdur = parseInt(temdur);
+        if( temdur && temdur !== "" && temdur != NaN ){
+            DARWINGS[index][2] = temdur;
+            elem.parentNode.children[elem.parentNode.children.length-3].innerHTML = " "+temdur.toString();
+        }
     }
+    askastringnumber("New Count: ", callback);
 }
 
 function setMO( index ){
-    let temmo = prompt("Give Modus of node (0: ..., 1:..., 2:... ): ");
-    if( temmo && temmo !== "" ){
-        MODUS[index] = parseInt(temmo);
+    let callback = function( temmo ){ 
+        temmo = parseInt(temmo);
+        if( temmo && temmo !== "" && temmo !== NaN ){
+            MODUS[index] = temmo;
+        }
     }
+    askastringnumber( "Give Modus of node (0: ..., 1:..., 2:... ): ", callback );
 }
 
 function toggelseqJESNO( e ){
@@ -1175,8 +1360,193 @@ function toggelseqJESNO( e ){
     e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
 }
 
+function doconniofkreuz( ){
+    let checks = document.getElementsByClassName( "kreuzies" );
+    
+    for( let c in checks ){
+        if( checks[c].name == 0 && checks[c].checked ){
+            let fiti = checks[c].id.split(",");
+            let fi = parseInt( fiti[0] );
+            let ti = parseInt( fiti[1] );
+            console.log("verbinde neu from ", fi, " to ", ti );
+            conntwonodes( fi, ti );
+            
+        } else if (checks[c].name == 1 && !checks[c].checked ){
+            let fiti = checks[c].id.split(",");
+            let fi = parseInt( fiti[0] );
+            let ti = parseInt( fiti[1] );
+            console.log("delet verbindung from", fi, " to ", ti);
+            deledgeone( fi, ti );
+            
+        }
+    }
+    let kk = document.getElementById( "kreuzschiene" );
+    kk.parentNode.removeChild( kk );
+}
+
+function kreuzschiene( e ){
+    CADDX = e.pageX;
+    CADDY = e.pageY;
+    let topup = document.createElement( "div" );
+    topup.className = "kreuzschiene";
+    topup.id = "kreuzschiene";
+    topup.style.left = CADDX.toString()+"px";
+    topup.style.top = CADDY.toString()+"px";
+    topup.style.background = "#"+  Math.random().toString(16).substring(2, 8);
+    for( let i = 0; i < DARWINGS.length; i+=1 ){
+        if( ACTIVEONES[ i ] !== -4 ){
+            let k = document.createElement( "div" );
+            for( let j = 0; j < DARWINGS.length; j+=1 ){
+                if( ACTIVEONES[ i ] !== -4 && ACTIVEONES[ j ] !== -4 ){
+                    let g = document.createElement( "span" );
+                    g.innerHTML = (i+1).toString() +"&gt;&gt;"+ (j+1).toString()+": ";
+                    let h = document.createElement( "input" );
+                    h.type = "checkbox";
+                    h.checked = false;
+                    h.name = 0;
+                    h.className = "kreuzies";
+                    h.id = i.toString( )+","+j.toString( );
+                    if( INOUT[ i ].indexOf( j ) != -1 ){
+                        h.checked = true;
+                        h.name = 1;
+                        console.log("one checked");
+                    }
+                    g.appendChild( h );
+                    k.appendChild( g );
+                }
+            }
+            topup.appendChild( k );
+        }
+    }
+
+    let xx = document.createElement( "input" );
+    xx.value = "Do!";
+    xx.type = "Button";
+    xx.onclick = function(){ doconniofkreuz( ); };
+    topup.appendChild(xx);
+    document.body.appendChild( topup );
+    e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+}
+
+
+function conntwonodes( fi, ti ){
+    //let fromnodenum = prompt("FROM node number: ");
+    let fromelm = document.getElementById( (fi+1).toString() ).children[1];
+    //fromelm.style.background = "blue";
+    //let tonodenum = prompt("TO node number: ");
+    let toelm = document.getElementById( (ti+1).toString() ).children[1];
+    //toelm.style.background = "blue";
+    
+    let evtd = document.createEvent('Event');
+    evtd.initEvent('pointerdown', true, true); 
+    let downpos = getpositiononpage( fromelm );
+    evtd.pageX = downpos[1]+2;
+    evtd.pageY = downpos[0]+2;
+    fromelm.dispatchEvent( evtd);
+    let evtu = document.createEvent('Event');
+    evtu.initEvent('pointerup', true, true); 
+    let uppos = getpositiononpage( toelm );
+    evtu.pageX = uppos[1]+2;
+    evtu.pageY = uppos[0]+2;
+    toelm.dispatchEvent( evtu );
+    //e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+}
+
+function deledge( e ){
+    let nodenum = prompt("Delete outgoing edges on node: ");
+    let delelm = document.getElementById( nodenum ).children[2];
+    let evtu = document.createEvent('Event');
+    evtu.initEvent('pointerup', true, true); 
+    let uppos = getpositiononpage( delelm );
+    evtu.pageX = uppos[1]+1;
+    evtu.pageY = uppos[0]+1;
+    delelm.dispatchEvent( evtu );
+    e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+}
+
+function deledgeone( fromindex, toindex ){
+    //let fromnodenum = prompt("FROM node number: ");
+    //let fromindex = fromnodenum-1;
+    
+    //let tonodenum = prompt("TO node number: ");
+    //let toindex = tonodenum-1;
+
+    let newone = [];
+    let newo = [];
+    let newoo = []
+    for( let j in INOUT[ fromindex ] ){
+        if( INOUT[ fromindex ][ j ] != toindex ){
+            newone.push( INOUT[ fromindex ][ j ] );
+            if( MODUS[fromindex] == "stocha" ){
+                newo.push( DARWINGS[ fromindex ][3][j]);
+                newoo.push( DARWINGS[ fromindex ][4][j]);
+            }
+        }
+    }
+    INOUT[ fromindex ] = newone;
+    if( MODUS[fromindex] == "stocha" ){
+        DARWINGS[ fromindex ][3] = newo;
+        DARWINGS[ fromindex ][4] = newoo;
+    }
+    
+
+    drawallconn(); 
+}
+
+function delnode( e, nodenum ){
+    if( nodenum === undefined ){
+        nodenum = prompt("Delete node: ");
+    }
+    let todelelem = document.getElementById( nodenum );
+    todelelem.style.display = "none";
+    
+    //hide elem and delete all edges from it and to it
+    let dataindex = parseInt(todelelem.children[1].name);
+    if( !Array.isArray( DARWINGS[ dataindex ] ) ){
+        DARWINGS[ dataindex ].style.display = "none";
+    }
+    ACTIVEONES[ dataindex ] = -4; //mark as deleted node
+    INOUT[ dataindex ] = [];
+    for( let io in INOUT ){
+        if( INOUT[ io ].length != 0){
+            console.log(dataindex, INOUT[ io])
+            if( INOUT[ io].indexOf( dataindex ) != -1 ){
+                console.log(INOUT[ io])
+                let newone = [];
+                for( let j in INOUT[ io ] ){
+                    if( INOUT[ io ][ j ] != dataindex ){
+                        newone.push( INOUT[ io ][ j ] );
+                    }
+                }
+                INOUT[ io ] = newone;
+            }
+        }
+    }
+    drawallconn(); 
+    if(e !== undefined ){   
+        e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+    }
+}
+
+function posnode( e, xx, yy ){
+    let nodenum = prompt("Move node: ");
+    let draelm = document.getElementById( nodenum ).children[0];
+    let evtd = document.createEvent('Event');
+    evtd.initEvent('pointerdown', true, true); 
+    let downpos = getpositiononpage( draelm );
+    evtd.pageX = xx;//downpos[1];
+    evtd.pageY = yy;//downpos[0];
+    draelm.dispatchEvent( evtd );
+    let evtu = document.createEvent('Event');
+    evtu.initEvent('pointerup', true, true); 
+    evtu.pageX = xx;//e.pageX;
+    evtu.pageY = yy;//e.pageY;
+    draelm.dispatchEvent( evtu );
+    e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+}
+
 function Sleep(milliseconds) {
- return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
 async function integupload( allarr ){
@@ -1274,7 +1644,7 @@ async function integupload( allarr ){
                  });
                  
                 
-            } else if( allarr[7][r] ===  "split" || allarr[7][r] === "sum" || allarr[7][r] === "switch"  ){
+            } else if( allarr[7][r] ===  "split" || allarr[7][r] === "sum" || allarr[7][r] === "switch" || allarr[7][r] === "stocha"  ){
                 CADDX = allarr[5][r][0];
                 CADDY = allarr[5][r][1];
                 TRAJ.push( allarr[6][r] );
@@ -1296,6 +1666,8 @@ async function integupload( allarr ){
                     arithnode(CADDX, CADDY, "split");
                 } else if( allarr[7][r] === "sum" ){
                     arithnode(CADDX, CADDY, "sum");
+                } else if( allarr[7][r] === "stocha" ){
+                    arithnode(CADDX, CADDY, "stocha");
                 } else {
                     arithnode(CADDX, CADDY, "switch");
                 }
@@ -1681,6 +2053,7 @@ function aktiAudio( e ){
 *******************************************************************************/
 
 function arithnode( x, y, typedenode ){
+    
     let d = document.createElement( "div" );
     d.style.display = "block";
     d.style.position = "absolute";//**
@@ -1688,8 +2061,13 @@ function arithnode( x, y, typedenode ){
     d.style.top = y.toString()+"px";
     d.style.zIndex = 5;
     d.style.background = "#"+  Math.random().toString(16).substring(2, 8);
+    if( maxnodemenwidth !== null ){
+        d.style.width = maxnodemenwidth.toString() +"px";
+    }
     d.className = "nodemen";
     d.name = typedenode;
+    d.innerHTML = "Nr: "+ (DARWINGS.length).toString( );
+    d.id = (DARWINGS.length).toString( );
 
     let m7 = document.createElement( "span" );
     m7.className = "nodemenent";
@@ -1722,7 +2100,7 @@ function arithnode( x, y, typedenode ){
         let m11 = document.createElement( "span" );
         m11.className = "nodemenent";
         m11.innerHTML = "SC";
-        m11.title = "Set Duration of node in ms.";
+        m11.title = "Set count of activations .";
         m11.name = ACTIVEONES.length-1;
         m11.onclick = function(){ setCount( this ); };
         d.appendChild( m11 );
@@ -1745,10 +2123,12 @@ function arithnode( x, y, typedenode ){
         m11.onclick = function(){ setDur( this ); };
         d.appendChild( m11 );
     }
+
     let m10 = document.createElement( "span" );
     m10.innerHTML = "  "+typedenode;
     d.appendChild( m10 );
     document.body.appendChild( d );
+
     let m12 = document.createElement( "span" );
     if( typedenode === "split" ){
         m12.innerHTML = " "+DURATIONS[DURATIONS.length-1];
@@ -1785,7 +2165,7 @@ function insertSplitNode(e ){
     e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
 }
 
-function insertSwitchNode(e ){
+function insertSwitchNode( e ){
     console.log("switch node");
     TRAJ.push([]);
     CADDX = e.pageX;
@@ -1799,6 +2179,19 @@ function insertSwitchNode(e ){
     e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
 }
 
+function insertStochNode( e ){
+    console.log("stochastic node");
+    TRAJ.push([]);
+    CADDX = e.pageX;
+    CADDY = e.pageY;
+    DARWINGS.push( [CADDX, CADDY, 0, [], []] ); 
+    ACTIVEONES.push( 0 );
+    DURATIONS.push( 0 );
+    MODUS.push("stocha");
+    arithnode( CADDX, CADDY, "stocha" ); 
+    e.target.parentNode.parentNode.removeChild( e.target.parentNode  );
+}
+
 function insertTHEnodeStuff( CADDX, CADDY, label ){
     let d = document.createElement( "div" );
     d.style.display = "block";
@@ -1807,8 +2200,14 @@ function insertTHEnodeStuff( CADDX, CADDY, label ){
     d.style.top = CADDY.toString()+"px";
     d.style.zIndex = 5;
     d.style.background = "#"+  Math.random().toString(16).substring(2, 8);
+    if( maxnodemenwidth !== null ){
+        d.style.width = maxnodemenwidth.toString() +"px";
+    }
     d.className = "nodemen";
     d.name = "audiofilenode";
+    d.innerHTML = "Nr: "+ (DARWINGS.length).toString( );
+    d.id =(DARWINGS.length).toString( );
+
 
     let m7 = document.createElement( "span" );
     m7.className = "nodemenent";
@@ -1838,7 +2237,7 @@ function insertTHEnodeStuff( CADDX, CADDY, label ){
     d.appendChild( m2 );
     let m6 = document.createElement( "span" );
     m6.className = "nodemenent";
-    m6.innerHTML = "DO";
+    m6.innerHTML = "☈";
     m6.title = "Activate node and emit action.";
     m6.name = ACTIVEONES.length-1;
     m6.onclick = function(){ emittAction( parseInt(this.name) ); };
@@ -2013,8 +2412,13 @@ function buildmidiMen(){
     d.style.top = CADDY.toString()+"px";
     d.style.zIndex = 5;
     d.style.background = "#"+  Math.random().toString(16).substring(2, 8);
+    if( maxnodemenwidth !== null ){
+        d.style.width = maxnodemenwidth.toString() +"px";
+    }
     d.className = "nodemen";
     d.name = "nononono";
+    d.innerHTML = "Nr: "+ (DARWINGS.length).toString( );
+    d.id = (DARWINGS.length).toString( );
 
     let m7 = document.createElement( "span" );
     m7.className = "nodemenent";
@@ -2035,6 +2439,7 @@ function buildmidiMen(){
     //m1.onpointerdown = function(){ startconn( event ); };
     //m1.onpointerup = function(){ endconn( event ); };
     d.appendChild( m1 );
+
     let m2 = document.createElement( "span" );
     m2.className = "nodemenent";
     m2.innerHTML = "XC";
@@ -2051,7 +2456,7 @@ function buildmidiMen(){
     d.appendChild( m5 );
     let m6 = document.createElement( "span" );
     m6.className = "nodemenent";
-    m6.innerHTML = "DO";
+    m6.innerHTML = "☈";
     m6.title = "Activate node and emit action.";
     m6.name = ACTIVEONES.length-1;
     m6.onclick = function(){ emittAction( parseInt(this.name) ); };
@@ -2079,6 +2484,9 @@ function buildmidiMen(){
     midimen.name = ACTIVEONES.length-1;
     midimen.style.left = CADDX.toString()+"px";
     midimen.style.top = (CADDY+15).toString()+"px";
+    if( maxnodemenwidth !== null ){
+        midimen.style.width = maxnodemenwidth.toString() +"px";
+    }
     DARWINGS[ACTIVEONES.length-1][2] = midimen;
     document.body.appendChild( midimen );
 
@@ -2252,7 +2660,8 @@ function insertAnodedraw( args ){
     //drawarea.addEventListener('pointermove', function( e ){   pointermoveEvfkt(e);     }, false);
     //drawarea.addEventListener('pointerdown', function( e ){   onpointerdownEventFkt(e);  }, false);
     drawarea.type = "#"+  Math.random().toString(16).substring(2, 8);
-    drawarea.name = ACTIVEONES.length;
+    
+    
     if( args === undefined ){
         drawarea.width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         drawarea.height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
@@ -2262,6 +2671,7 @@ function insertAnodedraw( args ){
         ACTIVEONES.push( -2 );
         DURATIONS.push( 1000 );
         DARWINGS.push( drawarea );
+        drawarea.name = ACTIVEONES.length-1;
     } else {
         //[dw dh], [px py],  TRAJ, MODUS, DURATIONS, INOUT, PIC
         //console.log(args);
@@ -2286,13 +2696,14 @@ function insertAnodedraw( args ){
         MODUS.push(args[3]);
         ACTIVEONES.push( -2 );
         DURATIONS.push( args[4] );
-        
+        drawarea.name = ACTIVEONES.length-1;
         for( let i in args[5]){
             console.log("conn", drawarea.name, args[5][i]);
             INOUT[parseInt(drawarea.name)].push( args[5][i] );
             
         }
         //console.log(INOUT);
+        
     }
     drawarea.style.left = CADDX.toString()+"px";
     drawarea.style.top = (CADDY+15).toString()+"px";
@@ -2310,8 +2721,13 @@ function insertAnodemenu( ){
     d.style.top = CADDY.toString()+"px";
     d.style.zIndex = 5;
     d.style.background = "#"+  Math.random().toString(16).substring(2, 8);
+    if( maxnodemenwidth !== null ){
+        d.style.width = maxnodemenwidth.toString() +"px";
+    }
     d.className = "nodemen";
     d.name = "nono";
+    d.innerHTML = "Nr: "+ (ACTIVEONES.length).toString( );
+    d.id = (ACTIVEONES.length).toString( );
 
     let m7 = document.createElement( "span" );
     m7.className = "nodemenent";
@@ -2362,7 +2778,7 @@ function insertAnodemenu( ){
     d.appendChild( m5 );
     let m6 = document.createElement( "span" );
     m6.className = "nodemenent";
-    m6.innerHTML = "DO";
+    m6.innerHTML = "☈";
     m6.title = "Activate node and emit action.";
     m6.name = ACTIVEONES.length-1;
     m6.onclick = function(){ emittAction( parseInt(this.name) ); };
@@ -2395,21 +2811,39 @@ function drawNode( e ){
 }
 
 function showmainmenu( e ){
+    let ih = (window.innerHeight || document.documentElement.clientHeight);
+    let iw = (window.innerWidth || document.documentElement.clientWidth);
+    let oh = (window.pageYOffset || document.documentElement.pageYOffset || 0);
+    let ow = (window.pageXOffset || document.documentElement.pageXOffset || 0);
+    
     CADDX = e.pageX;
     CADDY = e.pageY;
+
+    let ohih = oh+ih;
+    //console.log(CADDY + mainmenlength, ohih, oh, ih)
+    if( CADDY + mainmenlength > ohih ){
+        let untersch = CADDY + mainmenlength - ohih;
+        CADDY = CADDY - (untersch-1);
+    }
+
     let d = document.createElement( "div" );
     d.className = "mainmen";
+    d.id = "themainmen";
+    
     d.style.left = CADDX.toString()+"px";
     d.style.top = CADDY.toString()+"px";
     d.style.background = "#"+  Math.random().toString(16).substring(2, 8);
-    
+    if( mainmenwidth !== null ){
+        d.style.height = mainmenlength.toString()+"px";
+        d.style.width = mainmenwidth.toString()+"px";
+    }    
+
     let m9 = document.createElement( "div" );
     m9.innerHTML = "None";
     m9.className = "mainmenent";
     m9.onclick = function(){ nonedone( event ); };
     d.appendChild( m9 );
-
-    
+ 
     let m2 = document.createElement( "div" );
     m2.title = "Splits a input to some outputs and can add a delay time.";
     m2.innerHTML = "Add SplitNode";
@@ -2424,13 +2858,19 @@ function showmainmenu( e ){
     m18.onclick = function(){ insertSwitchNode( event ); };
     d.appendChild( m18 );
     
-
     let m3 = document.createElement( "div" );
     m3.title = "Sum Node counts input and after the amount of activations reached in it fires.";
     m3.innerHTML = "Add SumNode";
     m3.className = "mainmenent";
     m3.onclick = function(){ insertSumNode( event ); };
     d.appendChild( m3 );
+
+    let m21 = document.createElement( "div" );
+    m21.title = "Stochastic Node fires on one of the outputs related to its weight.";
+    m21.innerHTML = "Add StochNode";
+    m21.className = "mainmenent";
+    m21.onclick = function(){ insertStochNode( event ); };
+    d.appendChild( m21 );
 
     let m20 = document.createElement( "br" );
     d.appendChild( m20 );
@@ -2456,7 +2896,7 @@ function showmainmenu( e ){
     m14.onclick = function(){ insertAudRecNode( event ); };
     d.appendChild( m14 );
 
-    if(Midioutputs !== null){
+    if( Midioutputs !== null || mainmenwidth == null ){
         let m15 = document.createElement( "div" );
         m15.title = "Add a node to create midi messages.";
         m15.innerHTML = "Add MidiNode";
@@ -2474,6 +2914,47 @@ function showmainmenu( e ){
     
     let m16 = document.createElement( "br" );
     d.appendChild( m16 );
+
+    let m22 = document.createElement( "div" );
+    m22.innerHTML = "Connections";
+    m22.className = "mainmenent";
+    m22.title = "Connect two nodes.";
+    m22.onclick = function(){ kreuzschiene( event ); };
+    d.appendChild( m22 );
+    /*let m22 = document.createElement( "div" );
+    m22.innerHTML = "Connect";
+    m22.className = "mainmenent";
+    m22.title = "Connect two nodes.";
+    m22.onclick = function(){ conntwonodes( event ); };
+    d.appendChild( m22 );
+    
+    let m23 = document.createElement( "div" );
+    m23.innerHTML = "Del edges";
+    m23.className = "mainmenent";
+    m23.title = "Delete edges between two nodes.";
+    m23.onclick = function(){ deledge( event ); };
+    d.appendChild( m23 );
+
+    let m26 = document.createElement( "div" );
+    m26.innerHTML = "Del one edge";
+    m26.className = "mainmenent";
+    m26.title = "Delete one edge between two nodes.";
+    m26.onclick = function(){ deledgeone( event ); };
+    d.appendChild( m26 );*/
+
+    let m25 = document.createElement( "div" );
+    m25.innerHTML = "Del node";
+    m25.className = "mainmenent";
+    m25.title = "Delete a node.";
+    m25.onclick = function(){ delnode( e, undefined ); };
+    d.appendChild( m25 );
+
+    let m24 = document.createElement( "div" );
+    m24.innerHTML = "Mv node here";
+    m24.className = "mainmenent";
+    m24.title = "Define the new position of a nodes.";
+    m24.onclick = function(){ posnode( event, e.pageX, e.pageY ); };
+    d.appendChild( m24 );
 
     let m4 = document.createElement( "div" );
     m4.innerHTML = "Toggel STOP/DO";
@@ -2502,7 +2983,6 @@ function showmainmenu( e ){
     let m8 = document.createElement( "br" );
     d.appendChild( m8 );
     
-
     let m5 = document.createElement( "div" );
     m5.innerHTML = "Down";
     m5.title = "Download the network and the drawings for later usage.";
@@ -2513,7 +2993,11 @@ function showmainmenu( e ){
     let m6 = document.createElement( "input" );
     m6.title = "Upload a former network with drawings.";
     m6.type = "file";
-    m6.style.width = "105px";
+    if( mainmenwidth !== null ){
+        m6.style.width = (mainmenwidth-10).toString()+"px";
+    } else {
+        m6.style.width = "105px";
+    }
     m6.style.fontSize = "80%";
     m6.className = "mainmenent";
     m6.onchange = function(){ uploadas( this ); };
@@ -2583,7 +3067,7 @@ function inint_workbench( ){
     m13.className = "mainmenent";
     m13.onclick = function(){ aktiAudio( event ); };
     document.body.appendChild( m13 );
-    
+
     createDB( dbname );
     midiInit( );
 
@@ -2603,7 +3087,33 @@ function inint_workbench( ){
     outoffset = Math.round(WIDTH/50);
     inoffset = Math.round(WIDTH/20);
     
+    //do click on the audio button
+    let clicki = document.createEvent('Event');
+    clicki.initEvent('click', true, true); 
+    clicki.pageX = 10;
+    clicki.pageY = 10;
+    m13.dispatchEvent( clicki );
+
+    //get size of menu representations
+    let clickii = document.createEvent('Event');
+    clickii.initEvent('click', true, true); 
+    clickii.pageX = 10;
+    clickii.pageY = 10;
+    inelem.dispatchEvent( clickii );
+    let themenelm = document.getElementById( "themainmen" );
+    mainmenwidth = themenelm.offsetWidth;
+    mainmenlength = themenelm.offsetHeight;
+    themenelm.parentNode.removeChild( themenelm  );
     
+    //insert the maximum length menu node and messure
+    CADDX = 10;
+    CADDY = 10;    
+    insertAnodedraw( );
+    insertAnodemenu( );
+    let nodemenelem = document.getElementById( "1" );
+    maxnodemenwidth = nodemenelem.offsetWidth+10;
+    maxnodemenlength = nodemenelem.offsetHeight;
+    delnode( undefined, 1 );
 }
 
 function nande_ask_size( ){
